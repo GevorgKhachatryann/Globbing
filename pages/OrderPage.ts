@@ -1,0 +1,155 @@
+import { Page, Locator, expect } from '@playwright/test';
+
+export class OrderPage {
+  readonly page: Page;
+  readonly addParcelButton: Locator;
+  readonly trackingNumberInput: Locator;
+  readonly submitButton: Locator;
+  readonly errorMessage: Locator;
+  readonly countryOptions: Locator;
+  readonly shopDropdownToggle: Locator;
+  readonly shopDropdownArrow: Locator;
+  readonly shopOptions: Locator;
+  readonly orderNameInput: Locator;
+  readonly priceInput: Locator;
+  readonly fileInput: Locator;
+  readonly insuranceArrow: Locator;
+  readonly insuranceOptions: Locator;
+  readonly recipientArrow: Locator;
+  readonly recipientOptions: Locator;
+  readonly agreeTermsCheckbox: Locator;
+  readonly deliveryMethod: Locator;
+
+  constructor(page: Page) {
+    this.page = page;
+    this.addParcelButton = page.getByRole('button', { name: 'Add Parcel' });
+    this.countryOptions = page.locator('.section.country-section > div > div');
+    this.trackingNumberInput = page.locator('#tracking');
+    this.deliveryMethod = page.locator('#sale-order > div.section.method-section div:nth-child(6) > img')
+    this.shopDropdownToggle = page.locator('.dropdown-toggle.shop-options-dropdown');
+    this.shopDropdownArrow = page.locator('.dropdown-toggle.shop-options-dropdown .arrow');
+    this.shopOptions = page.locator('#sale-order > div:nth-child(6) label > div > ul > li > a');
+    this.submitButton = page.locator('#submit-sale-order');
+    this.errorMessage = page.locator('.error-message');
+    this.agreeTermsCheckbox = page.locator('#agree-terms');
+    this.orderNameInput = page.locator('[name="declaration[0][title]"]');
+    this.priceInput = page.locator('#order-declarations .price-input');
+    this.fileInput = page.locator('[type="file"]');
+    this.insuranceArrow = page.locator('.section.insurance-section .arrow');
+    this.insuranceOptions = page.locator('.section.insurance-section .dropdown-item');
+    this.recipientArrow = page.locator('.section.recipient-section .arrow');
+    this.recipientOptions = page.locator('.section.recipient-section .dropdown-item');
+  }
+
+  async goto() {
+    await this.page.goto('/sale-order/');
+  }
+
+  async openAddParcelForm() {
+    await this.addParcelButton.click();
+  }
+
+  async selectCountryByName(countryName: string) {
+    await this.countryOptions.filter({ hasText: countryName }).click();
+  }
+
+  async openShopDropdown() {
+    await this.shopDropdownArrow.click();
+  }
+
+  async selectShopByIndex(index: number) {
+    await this.openShopDropdown();
+    await this.shopOptions.nth(index).click();
+  }
+
+  async selectShopByName(shopName: string) {
+    await this.openShopDropdown();
+    await this.shopOptions.filter({ hasText: shopName }).click();
+  }
+
+  async fillOrderName(orderName: string) {
+    await this.orderNameInput.fill(orderName);
+  }
+
+  async fillPrice(price: string) {
+    await this.priceInput.fill(price);
+  }
+
+  async attachFile(filePath: string) {
+    await this.fileInput.setInputFiles(filePath);
+  }
+
+  async selectDeliveryMethod() {
+    await this.deliveryMethod.click();
+  }
+
+  async openInsuranceDropdown() {
+    await this.insuranceArrow.click();
+  }
+
+  async selectInsuranceByName(insuranceType: string) {
+    await this.openInsuranceDropdown();
+    await this.insuranceOptions.filter({ hasText: insuranceType }).click();
+  }
+
+  async selectInsuranceByIndex(index: number) {
+    await this.openInsuranceDropdown();
+    await this.insuranceOptions.nth(index).click();
+  }
+
+  async openRecipientDropdown() {
+    await this.recipientArrow.click();
+  }
+
+  async selectRecipientByName(recipientName: string) {
+    await this.openRecipientDropdown();
+    await this.recipientOptions.filter({ hasText: recipientName }).click();
+  }
+
+  async selectRecipientByIndex(index: number) {
+    await this.openRecipientDropdown();
+    await this.recipientOptions.nth(index).click();
+  }
+  async agreeToTerms() {
+    await this.agreeTermsCheckbox.check();
+  }
+
+  async fillParcelDetails(details: {
+    trackingNumber: string;
+    shopName: string;
+    orderName: string;
+    price: string;
+    insuranceType: string;
+    recipientName: string;
+  }) {
+    await this.selectDeliveryMethod
+    await this.trackingNumberInput.fill(details.trackingNumber);
+    await this.selectShopByName(details.shopName);
+    await this.fillOrderName(details.orderName);
+    await this.fillPrice(details.price);
+    await this.selectInsuranceByName(details.insuranceType);
+    await this.agreeToTerms();
+    await this.selectRecipientByIndex(0);
+  }
+
+  async submit() {
+    await this.submitButton.dblclick();
+  }
+
+    async addParcel(details: {
+    trackingNumber: string;
+    shopName: string;
+    orderName: string;
+    price: string;
+    insuranceType: string;
+    recipientName: string;
+  }) {
+    await this.fillParcelDetails(details);
+    await this.submit();
+  }
+
+
+//   async expectErrorVisible() {
+//     await expect(this.errorMessage).toBeVisible();
+//   }
+}
