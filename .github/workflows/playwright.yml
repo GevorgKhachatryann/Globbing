@@ -21,6 +21,14 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
+      - name: Check secrets are present
+        run: |
+          [ -n "$APP_USERNAME" ] && echo "APP_USERNAME: OK" || echo "APP_USERNAME: MISSING"
+          [ -n "$BASIC_AUTH_USER" ] && echo "BASIC_AUTH_USER: OK" || echo "BASIC_AUTH_USER: MISSING"
+        env:
+          APP_USERNAME: ${{ secrets.APP_USERNAME }}
+          BASIC_AUTH_USER: ${{ secrets.BASIC_AUTH_USER }}
+
       - name: Run Playwright tests
         run: npx playwright test tests/login.spec.ts
         env:

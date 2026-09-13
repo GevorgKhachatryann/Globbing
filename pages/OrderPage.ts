@@ -18,14 +18,14 @@ export class OrderPage {
   readonly recipientArrow: Locator;
   readonly recipientOptions: Locator;
   readonly agreeTermsCheckbox: Locator;
-  readonly deliveryMethod: Locator;
+  readonly deliveryMethodOptions: Locator;
 
   constructor(page: Page) {
     this.page = page;
     this.addParcelButton = page.getByRole('button', { name: 'Add Parcel' });
     this.countryOptions = page.locator('.section.country-section > div > div');
     this.trackingNumberInput = page.locator('#tracking');
-    this.deliveryMethod = page.locator('#sale-order > div.section.method-section div:nth-child(6) > img')
+ this.deliveryMethodOptions = page.locator('.section.method-section .radio-tab.switch-tab');
     this.shopDropdownToggle = page.locator('.dropdown-toggle.shop-options-dropdown');
     this.shopDropdownArrow = page.locator('.dropdown-toggle.shop-options-dropdown .arrow');
     this.shopOptions = page.locator('#sale-order > div:nth-child(6) label > div > ul > li > a');
@@ -79,8 +79,9 @@ export class OrderPage {
     await this.fileInput.setInputFiles(filePath);
   }
 
-  async selectDeliveryMethod() {
-    await this.deliveryMethod.click();
+  async selectDeliveryMethodByName(methodName: string) {
+    const visibleOptions = this.deliveryMethodOptions.locator('visible=true');
+    await visibleOptions.filter({ hasText: methodName }).click();
   }
 
   async openInsuranceDropdown() {
@@ -121,8 +122,9 @@ export class OrderPage {
     price: string;
     insuranceType: string;
     recipientName: string;
+    deliveryMethod: string;
   }) {
-    await this.selectDeliveryMethod
+    await this.selectDeliveryMethodByName(details.deliveryMethod);
     await this.trackingNumberInput.fill(details.trackingNumber);
     await this.selectShopByName(details.shopName);
     await this.fillOrderName(details.orderName);
@@ -133,7 +135,7 @@ export class OrderPage {
   }
 
   async submit() {
-    await this.submitButton.dblclick();
+    await this.submitButton.click();
   }
 
     async addParcel(details: {
@@ -143,6 +145,7 @@ export class OrderPage {
     price: string;
     insuranceType: string;
     recipientName: string;
+    deliveryMethod: string; 
   }) {
     await this.fillParcelDetails(details);
     await this.submit();
