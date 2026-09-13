@@ -30,7 +30,7 @@ jobs:
           BASIC_AUTH_USER: ${{ secrets.BASIC_AUTH_USER }}
 
       - name: Run Playwright tests
-        run: npx playwright test tests/login.spec.ts
+        run: npx playwright test 
         env:
           APP_USERNAME: ${{ secrets.APP_USERNAME }}
           APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
