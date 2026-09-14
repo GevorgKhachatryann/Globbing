@@ -1,14 +1,14 @@
 export const shopsByCountry: Record<string, string[]> = {
   USA: ['A.L.C.', '1people', 'AHparts', 'ALDO SHOES', 'ALYX Studio'],
-  England: ['ARKET', 'AXXA', 'Adidas UK', 'AllBeauty', 'Amazon UK'],
-  China: ['AliExpress', 'Tmall', 'Vmall', 'JD', 'Taobao'],
-  Germany: ['Amazon', 'ASOS Germany', 'Amigo Germany'],
-  Italy: ['Armani Beauty', 'Bershka Italy', 'C&A'],
-  Dubai: ['Burjauto', 'Carbox', 'JUMBO'],
-  Russia: ['ANBIK', 'Askona', 'Befree'],
-  Greece: ['Adopt', 'Bershka Greece', 'Zara Greece'],
-  Korea: ['Able Shop', 'Apple Korea'],
-  Spain: ['Benetton Spain', 'Bibs Spain', 'Calvin Klein Spain'],
+  // England: ['ARKET', 'AXXA', 'Adidas UK', 'AllBeauty', 'Amazon UK'],
+  // China: ['AliExpress', 'Tmall', 'Vmall', 'JD', 'Taobao'],
+  // Germany: ['Amazon', 'ASOS Germany', 'Amigo Germany'],
+  // Italy: ['Armani Beauty', 'Bershka Italy', 'C&A'],
+  // Dubai: ['Burjauto', 'Carbox', 'JUMBO'],
+  // Russia: ['ANBIK', 'Askona', 'Befree'],
+  // Greece: ['Adopt', 'Bershka Greece', 'Zara Greece'],
+  // Korea: ['&Other Stories Korea', 'ARITAUM',],
+  // Spain: ['Benetton Spain', 'Bibs Spain', 'Calvin Klein Spain'],
 };
 
 export const countries = Object.keys(shopsByCountry);

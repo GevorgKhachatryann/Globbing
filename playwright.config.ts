@@ -29,7 +29,8 @@ export default defineConfig({
   
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
   use: {
-    baseURL: 'https://am.pre.new.globbing.com/',
+    baseURL: 'https://am.new.globbing.com/',
+    locale: 'en-US',
     httpCredentials: {
       username: process.env.BASIC_AUTH_USER!,
       password: process.env.BASIC_AUTH_PASS!,

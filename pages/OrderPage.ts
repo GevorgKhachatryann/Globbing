@@ -25,7 +25,7 @@ export class OrderPage {
     this.addParcelButton = page.getByRole('button', { name: 'Add Parcel' });
     this.countryOptions = page.locator('.section.country-section > div > div');
     this.trackingNumberInput = page.locator('#tracking');
- this.deliveryMethodOptions = page.locator('.section.method-section .radio-tab.switch-tab');
+    this.deliveryMethodOptions = page.locator('.section.method-section .radio-tab.switch-tab');
     this.shopDropdownToggle = page.locator('.dropdown-toggle.shop-options-dropdown');
     this.shopDropdownArrow = page.locator('.dropdown-toggle.shop-options-dropdown .arrow');
     this.shopOptions = page.locator('#sale-order > div:nth-child(6) label > div > ul > li > a');
@@ -34,7 +34,7 @@ export class OrderPage {
     this.agreeTermsCheckbox = page.locator('#agree-terms');
     this.orderNameInput = page.locator('[name="declaration[0][title]"]');
     this.priceInput = page.locator('#order-declarations .price-input');
-    this.fileInput = page.locator('[type="file"]');
+    this.fileInput = page.locator('#uploadifive-undefined > input[type=file]');
     this.insuranceArrow = page.locator('.section.insurance-section .arrow');
     this.insuranceOptions = page.locator('.section.insurance-section .dropdown-item');
     this.recipientArrow = page.locator('.section.recipient-section .arrow');
@@ -76,6 +76,7 @@ export class OrderPage {
   }
 
   async attachFile(filePath: string) {
+    await this.fileInput.click();
     await this.fileInput.setInputFiles(filePath);
   }
 
@@ -111,6 +112,7 @@ export class OrderPage {
     await this.openRecipientDropdown();
     await this.recipientOptions.nth(index).click();
   }
+
   async agreeToTerms() {
     await this.agreeTermsCheckbox.check();
   }
@@ -123,12 +125,14 @@ export class OrderPage {
     insuranceType: string;
     recipientName: string;
     deliveryMethod: string;
+    filePath: string;
   }) {
     await this.selectDeliveryMethodByName(details.deliveryMethod);
     await this.trackingNumberInput.fill(details.trackingNumber);
     await this.selectShopByName(details.shopName);
     await this.fillOrderName(details.orderName);
     await this.fillPrice(details.price);
+    await this.attachFile(details.filePath);
     await this.selectInsuranceByName(details.insuranceType);
     await this.agreeToTerms();
     await this.selectRecipientByIndex(0);
@@ -138,21 +142,22 @@ export class OrderPage {
     await this.submitButton.click();
   }
 
-    async addParcel(details: {
+  async addParcel(details: {
     trackingNumber: string;
     shopName: string;
     orderName: string;
     price: string;
     insuranceType: string;
     recipientName: string;
-    deliveryMethod: string; 
+    deliveryMethod: string;
+    filePath: string;
   }) {
     await this.fillParcelDetails(details);
     await this.submit();
   }
 
-
-//   async expectErrorVisible() {
-//     await expect(this.errorMessage).toBeVisible();
-//   }
+  async expectErrorVisible() {
+    const visibleError = this.errorMessage.locator('visible=true');
+    await expect(visibleError).toContainText('');  
+  }
 }

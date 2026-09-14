@@ -1,14 +1,18 @@
 import { test, expect } from '@playwright/test';
+import path from 'path';
 import { LoginPage } from '../pages/LoginPage';
 import { OrderPage } from '../pages/OrderPage';
 import { faker } from '@faker-js/faker';
-import { 
+import {
   shopsByCountry,
-  countries, 
-  deliveryMethodByCountry, 
+  countries,
+  deliveryMethodByCountry,
   insuranceOptions,
-  PRICE_RANGE 
-  } from '../data/orderTestData';
+  PRICE_RANGE,
+} from '../data/orderTestData';
+
+const INVOICE_FILE_PATH = path.join(__dirname, '../data/sample-invoice.pdf');
+const country = 'USA'; // fixed country for validation cases, doesn't need to run per-country
 
 test.describe('Globbing — Add Parcel', () => {
   let loginPage: LoginPage;
@@ -48,8 +52,139 @@ test.describe('Globbing — Add Parcel', () => {
         insuranceType,
         recipientName: 'Fyodor Fyodor',
         deliveryMethod: deliveryMethodByCountry[country],
+        filePath: INVOICE_FILE_PATH,
       });
       await expect(orderPage.page).toHaveURL(/my-orders/);
     });
   }
+
+  test('shows an error when tracking number is empty', async () => {
+    await orderPage.selectCountryByName(country);
+    await orderPage.addParcel({
+      trackingNumber: '',
+      shopName: faker.helpers.arrayElement(shopsByCountry[country]),
+      orderName: faker.commerce.productName(),
+      price: faker.commerce.price({ min: PRICE_RANGE.min, max: PRICE_RANGE.max, dec: 2 }),
+      insuranceType: faker.helpers.arrayElement(insuranceOptions),
+      recipientName: 'Fyodor Fyodor',
+      deliveryMethod: deliveryMethodByCountry[country],
+      filePath: INVOICE_FILE_PATH,
+    });
+    await orderPage.expectErrorVisible();
+  });
+
+  test('shows an error when order name is empty', async () => {
+    await orderPage.selectCountryByName(country);
+    await orderPage.addParcel({
+      trackingNumber: `TRACK${faker.string.numeric(9)}`,
+      shopName: faker.helpers.arrayElement(shopsByCountry[country]),
+      orderName: '',
+      price: faker.commerce.price({ min: PRICE_RANGE.min, max: PRICE_RANGE.max, dec: 2 }),
+      insuranceType: faker.helpers.arrayElement(insuranceOptions),
+      recipientName: 'Fyodor Fyodor',
+      deliveryMethod: deliveryMethodByCountry[country],
+      filePath: INVOICE_FILE_PATH,
+    });
+    await orderPage.expectErrorVisible();
+  });
+
+  test('rejects a zero price', async () => {
+    await orderPage.selectCountryByName(country);
+    await orderPage.addParcel({
+      trackingNumber: `TRACK${faker.string.numeric(9)}`,
+      shopName: faker.helpers.arrayElement(shopsByCountry[country]),
+      orderName: faker.commerce.productName(),
+      price: '0',
+      insuranceType: faker.helpers.arrayElement(insuranceOptions),
+      recipientName: 'Fyodor Fyodor',
+      deliveryMethod: deliveryMethodByCountry[country],
+      filePath: INVOICE_FILE_PATH,
+    });
+    await orderPage.expectErrorVisible();
+  });
+
+  test('rejects a negative price', async () => {
+    await orderPage.selectCountryByName(country);
+    await orderPage.addParcel({
+      trackingNumber: `TRACK${faker.string.numeric(9)}`,
+      shopName: faker.helpers.arrayElement(shopsByCountry[country]),
+      orderName: faker.commerce.productName(),
+      price: '-10',
+      insuranceType: faker.helpers.arrayElement(insuranceOptions),
+      recipientName: 'Fyodor Fyodor',
+      deliveryMethod: deliveryMethodByCountry[country],
+      filePath: INVOICE_FILE_PATH,
+    });
+    await orderPage.expectErrorVisible();
+  });
+
+  test('does not submit without agreeing to terms', async () => {
+    await orderPage.selectCountryByName(country);
+    await orderPage.selectDeliveryMethodByName(deliveryMethodByCountry[country]);
+    await orderPage.trackingNumberInput.fill(`TRACK${faker.string.numeric(9)}`);
+    await orderPage.selectShopByName(faker.helpers.arrayElement(shopsByCountry[country]));
+    await orderPage.fillOrderName(faker.commerce.productName());
+    await orderPage.fillPrice(faker.commerce.price({ min: PRICE_RANGE.min, max: PRICE_RANGE.max, dec: 2 }));
+    await orderPage.attachFile(INVOICE_FILE_PATH);
+    await orderPage.selectInsuranceByName(faker.helpers.arrayElement(insuranceOptions));
+    // deliberately skip agreeToTerms()
+    await orderPage.selectRecipientByIndex(0);
+    await orderPage.submit();
+    await orderPage.expectErrorVisible();
+  }); 
+
+  test('rejects non-numeric characters in price', async () => {
+    await orderPage.selectCountryByName(country);
+    await orderPage.addParcel({
+      trackingNumber: `TRACK${faker.string.numeric(9)}`,
+      shopName: faker.helpers.arrayElement(shopsByCountry[country]),
+      orderName: faker.commerce.productName(),
+      price: 'abc',
+      insuranceType: faker.helpers.arrayElement(insuranceOptions),
+      recipientName: 'Fyodor Fyodor',
+      deliveryMethod: deliveryMethodByCountry[country],
+      filePath: INVOICE_FILE_PATH,
+    });
+    await orderPage.expectErrorVisible();
+  });
+
+  test('accepts an order name with special characters', async () => {
+    await orderPage.selectCountryByName(country);
+    await orderPage.addParcel({
+      trackingNumber: `TRACK${faker.string.numeric(9)}`,
+      shopName: faker.helpers.arrayElement(shopsByCountry[country]),
+      orderName: `Test & Order "#1" — 50% off!`,
+      price: faker.commerce.price({ min: PRICE_RANGE.min, max: PRICE_RANGE.max, dec: 2 }),
+      insuranceType: faker.helpers.arrayElement(insuranceOptions),
+      recipientName: 'Fyodor Fyodor',
+      deliveryMethod: deliveryMethodByCountry[country],
+      filePath: INVOICE_FILE_PATH,
+    });
+    await expect(orderPage.page).toHaveURL(/my-orders/);
+  });
+
+  test('rejects an extremely long order name', async () => {
+    await orderPage.selectCountryByName(country);
+    await orderPage.addParcel({
+      trackingNumber: `TRACK${faker.string.numeric(9)}`,
+      shopName: faker.helpers.arrayElement(shopsByCountry[country]),
+      orderName: faker.lorem.words(200), // way past any sane field limit
+      price: faker.commerce.price({ min: PRICE_RANGE.min, max: PRICE_RANGE.max, dec: 2 }),
+      insuranceType: faker.helpers.arrayElement(insuranceOptions),
+      recipientName: 'Fyodor Fyodor',
+      deliveryMethod: deliveryMethodByCountry[country],
+      filePath: INVOICE_FILE_PATH,
+    });
+    await orderPage.expectErrorVisible();
+  });
+
+  test('changing country after selecting a shop resets the shop selection', async () => {
+    await orderPage.selectCountryByName('USA');
+    await orderPage.selectShopByName(faker.helpers.arrayElement(shopsByCountry['USA']));
+    await orderPage.selectCountryByName('England');
+    expect(orderPage.shopDropdownToggle).toHaveText('Shop name')
+  });
+
+  
+
 });
