@@ -52,14 +52,9 @@ export class RegistrationStepTwoPage {
 
   async clickChooseButton() {
     const chosen = this.chooseBtn.locator('visible=true');
-
-    const browserName = this.page.context().browser()?.browserType().name();
-    if (browserName === 'webkit') {
-      await chosen.click({ force: true });
-      await expect(chosen).toBeHidden({ timeout: 10000 });
-    } else {
-      await chosen.click({ force: true });
-    }
+    await expect(chosen).toBeVisible({ timeout: 10000 });
+    await chosen.click({ force: true });
+    await expect(chosen).toBeHidden({ timeout: 10000 });
   }
 
   async expectRegistrationComplete() {

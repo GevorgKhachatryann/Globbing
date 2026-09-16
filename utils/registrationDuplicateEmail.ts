@@ -9,7 +9,7 @@ import { RegistrationPage } from '../pages/RegistrationPage';
  * the exact-text one.
  */
 const DUPLICATE_UNVERIFIED_EMAIL_ERROR_TEXT: Record<string, string> = {
-  hy: 'Էլ. Հասցեն հաստատված չէ։',
+  hy: 'Էլ․ Հասցեն հաստատված չէ։',
   en: 'The email address is not verified.',
   ru: 'Электронная почта не подтверждена.'
 };
