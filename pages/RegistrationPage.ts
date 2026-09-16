@@ -17,6 +17,13 @@ export class RegistrationPage {
   readonly errorMessage: Locator;
   readonly choosePickupPointBtn: Locator;
 
+  // Business tab fields
+  readonly companyNameInput: Locator;
+  readonly tinInput: Locator;
+  readonly licensePersonNameInput: Locator;
+  readonly licensePersonSurnameInput: Locator;
+ 
+
   constructor(page: Page) {
     this.page = page;
     this.individualTab = page.locator('[data-type="physical"]');
@@ -35,6 +42,14 @@ export class RegistrationPage {
     this.submitButton = page.locator('#user-register-form span > button');
     this.errorMessage = page.locator('.error-message:visible');
     this.choosePickupPointBtn = page.locator('#congrats-timer');
+
+
+    // TODO: verify these against the real business tab DOM — guessed to
+    // follow the same #register-* naming convention as the individual tab.
+    this.companyNameInput = page.locator('#register-legal-name');
+    this.tinInput = page.locator('#register-passport');
+    this.licensePersonNameInput = page.locator('#register-responsible-person-name');
+    this.licensePersonSurnameInput = page.locator('#register-responsible-person-surname');
   }
 
   async goto() {
@@ -74,6 +89,26 @@ export class RegistrationPage {
     await this.agreeTermsCheckbox.check();
   }
 
+   async fillBusinessDetails(details: {
+    companyName: string;
+    email: string;
+    password: string;
+    tin: string;
+    licensePersonName: string;
+    licensePersonSurname: string;
+    phoneNumber: string;
+  }) {
+    await this.companyNameInput.fill(details.companyName);
+    await this.emailInput.fill(details.email);
+    await this.passwordInput.fill(details.password);
+    await this.repeatPasswordInput.fill(details.password);
+    await this.tinInput.fill(details.tin);
+    await this.licensePersonNameInput.fill(details.licensePersonName);
+    await this.licensePersonSurnameInput.fill(details.licensePersonSurname);
+    await this.phoneNumberInput.fill(details.phoneNumber);
+    await this.agreeTermsCheckbox.check();
+  }
+
   async submit() {
     await this.submitButton.click();
   }
@@ -87,6 +122,20 @@ export class RegistrationPage {
   }) {
     await this.selectIndividualTab();
     await this.fillIndividualDetails(details);
+    await this.submit();
+  }
+
+  async registerBusiness(details: {
+    companyName: string;
+    email: string;
+    password: string;
+    tin: string;
+    licensePersonName: string;
+    licensePersonSurname: string;
+    phoneNumber: string;
+  }) {
+    await this.selectBusinessTab();
+    await this.fillBusinessDetails(details);
     await this.submit();
   }
 

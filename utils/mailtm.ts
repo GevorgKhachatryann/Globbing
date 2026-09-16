@@ -15,8 +15,13 @@ export interface MailTmMessage {
   intro: string;
 }
 
+let sharedContext: APIRequestContext | null = null;
+
 async function getContext(): Promise<APIRequestContext> {
-  return request.newContext({ baseURL: MAILTM_BASE_URL });
+  if (!sharedContext) {
+    sharedContext = await request.newContext({ baseURL: MAILTM_BASE_URL });
+  }
+  return sharedContext;
 }
 
 export async function getRandomDomain(): Promise<string> {
@@ -55,9 +60,16 @@ async function requestWithRetry<T>(fn: () => Promise<T>, retries = 3, delayMs = 
     try {
       return await fn();
     } catch (err: any) {
-      const is429 = err.message?.includes('429');
-      if (is429 && attempt < retries) {
-        console.log(`mail.tm rate-limited (attempt ${attempt}/${retries}), waiting ${delayMs}ms...`);
+      const msg = err.message ?? '';
+      const isTransient =
+        msg.includes('429') ||
+        msg.includes('ECONNRESET') ||
+        msg.includes('ETIMEDOUT') ||
+        msg.includes('ECONNREFUSED') ||
+        msg.includes('socket hang up');
+
+      if (isTransient && attempt < retries) {
+        console.log(`mail.tm transient error (attempt ${attempt}/${retries}): ${msg} — retrying in ${delayMs}ms`);
         await new Promise((resolve) => setTimeout(resolve, delayMs));
         continue;
       }
@@ -78,13 +90,15 @@ export async function getToken(address: string, password: string): Promise<strin
 }
 
 export async function listMessages(token: string): Promise<MailTmMessage[]> {
-  const api = await getContext();
-  const res = await api.get('/messages', {
-    headers: { Authorization: `Bearer ${token}` },
+  return requestWithRetry(async () => {
+    const api = await getContext();
+    const res = await api.get('/messages', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const body = await res.json();
+    await api.dispose();
+    return body['hydra:member'] ?? [];
   });
-  const body = await res.json();
-  await api.dispose();
-  return body['hydra:member'] ?? [];
 }
 
 export async function getMessageBody(token: string, messageId: string): Promise<string> {
