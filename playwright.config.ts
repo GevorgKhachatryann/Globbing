@@ -39,6 +39,8 @@ export default defineConfig({
       args: ['--start-maximized'],
     },
     trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
   },
 
   /* Configure projects for major browsers */

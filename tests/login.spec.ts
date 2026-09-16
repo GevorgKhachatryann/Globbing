@@ -73,4 +73,11 @@ test.describe('Globbing — Login', () => {
     await loginPage.goToRegister();
     await expect(page).toHaveURL(/registration/);
   });
+
+  test('logs out successfully', async ({ page }) => {
+    await loginPage.login(process.env.APP_USERNAME!, process.env.APP_PASSWORD!);
+    await expect(page).toHaveURL(/profile/);
+    await loginPage.logout();
+    await expect(page).not.toHaveURL(/profile/);
+  });
 });

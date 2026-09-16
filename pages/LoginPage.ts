@@ -10,6 +10,8 @@ export class LoginPage {
   readonly passwordError: Locator;
   readonly forgotPasswordLink: Locator;
   readonly registerLink: Locator;
+  readonly userMenuToggle: Locator;
+  readonly logoutLink: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -17,13 +19,13 @@ export class LoginPage {
     this.passwordInput = page.locator('#login-password');
     this.rememberMeCheckbox = page.locator('#remember');
     this.loginButton = page.locator('#user-login-form button[type="submit"]');
-
     const loginFormErrors = page.locator('#user-login-form .error-message');
     this.emailError = loginFormErrors.nth(0);
     this.passwordError = loginFormErrors.nth(1);
-
-    this.forgotPasswordLink = page.getByText('Մոռացե՞լ եք Ձեր գաղտնաբառը');
-    this.registerLink = page.getByText('Միացեք հիմա');
+    this.forgotPasswordLink = page.locator('.forgot-pass');
+    this.registerLink = page.locator('#login-banner  p:nth-child(1) > a');
+    this.userMenuToggle = this.page.locator('.head-bar div:nth-child(7) > button');
+    this.logoutLink = this.page.locator('a[href$="/logout/"]:visible');
   }
 
   async goto() {
@@ -54,4 +56,9 @@ export class LoginPage {
   async expectPasswordErrorVisible(timeout: number = 10000) {
     await expect(this.passwordError).toBeVisible({ timeout });
   }
+
+  async logout() {
+    await this.userMenuToggle.click();
+    await this.logoutLink.click();
+  }  
 }
