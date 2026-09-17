@@ -1,83 +1,76 @@
-name: Playwright Tests
+name: Playwright E2E Tests
 on:
-  schedule:
-    - cron: '0 3 * * *'
+  # Run CI for changes pushed to master
   push:
-    branches: [ main, master ]
+    branches:
+      - master
+
+  # Run CI for pull requests targeting master
   pull_request:
-    branches: [ main, master ]
+    branches:
+      - master
+
+  # Run the complete suite every day at 00:00 UTC
+  schedule:
+    - cron: '0 20 * * *'
+
+  # Allow manual execution from GitHub Actions
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
-  test-mail-dependent:
-    timeout-minutes: 20
+  e2e:
+    name: E2E - ${{ matrix.browser }}
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+    timeout-minutes: 30
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps
-
-      - name: Run mailbox-dependent Playwright tests
-        run: npx playwright test --grep "@needs-mailbox" --workers=1
-        env:
-          APP_USERNAME: ${{ secrets.APP_USERNAME }}
-          APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
-          BASIC_AUTH_USER: ${{ secrets.BASIC_AUTH_USER }}
-          BASIC_AUTH_PASS: ${{ secrets.BASIC_AUTH_PASS }}
-
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: playwright-report-mail-dependent
-          path: playwright-report/
-          retention-days: 14
-
-  test-general:
-    timeout-minutes: 20
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        project: [chromium, firefox, webkit]
-    steps:
-      - uses: actions/checkout@v4
+        browser:
+          - chromium
+          - firefox
+          - webkit
 
-      - uses: actions/setup-node@v4
+    env:
+      APP_USERNAME: ${{ secrets.APP_USERNAME }}
+      APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
+      BASIC_AUTH_USER: ${{ secrets.BASIC_AUTH_USER }}
+      BASIC_AUTH_PASS: ${{ secrets.BASIC_AUTH_PASS }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
+          cache: npm
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps ${{ matrix.browser }}
 
-      - name: Check secrets are present
-        run: |
-          [ -n "$APP_USERNAME" ] && echo "APP_USERNAME: OK" || echo "APP_USERNAME: MISSING"
-          [ -n "$BASIC_AUTH_USER" ] && echo "BASIC_AUTH_USER: OK" || echo "BASIC_AUTH_USER: MISSING"
-        env:
-          APP_USERNAME: ${{ secrets.APP_USERNAME }}
-          BASIC_AUTH_USER: ${{ secrets.BASIC_AUTH_USER }}
+      - name: Run Playwright tests
+        run: npx playwright test --project=${{ matrix.browser }}
 
-      - name: Run general Playwright tests
-        run: npx playwright test --grep-invert "@needs-mailbox" --workers=1
-        env:
-          APP_USERNAME: ${{ secrets.APP_USERNAME }}
-          APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
-          BASIC_AUTH_USER: ${{ secrets.BASIC_AUTH_USER }}
-          BASIC_AUTH_PASS: ${{ secrets.BASIC_AUTH_PASS }}
-
-      - uses: actions/upload-artifact@v4
+      - name: Upload Playwright report
         if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-general
+          name: playwright-report-${{ matrix.browser }}
           path: playwright-report/
+          retention-days: 14
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.browser }}
+          path: test-results/
           retention-days: 14

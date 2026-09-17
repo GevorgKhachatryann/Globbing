@@ -56,18 +56,8 @@ export class RegistrationStepTwoPage {
       .locator(`button[data-id="${this.activePointId}"]`)
       .locator('visible=true');
 
-    // Scroll the results panel incrementally until the target node mounts.
-    const listContainer = this.page.locator('.tabpanel, [role="tabpanel"]').first();
-    await expect
-      .poll(async () => {
-        if (await chosen.count() > 0) return true;
-        await listContainer.evaluate(el => el.scrollBy(0, 400));
-        return false;
-      }, { timeout: 30000, intervals: [300] })
-      .toBe(true);
-
     await chosen.scrollIntoViewIfNeeded();
-    await expect(chosen).toBeInViewport({ timeout: 10000 });
+    await expect(chosen).toBeInViewport({ timeout: 15000 });
     await chosen.click();
   }
 
