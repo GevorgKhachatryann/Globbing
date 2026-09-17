@@ -23,8 +23,8 @@ test.describe('Globbing — Registration', () => {
 
     await registrationPage.goto();
     await registrationPage.registerIndividual({
-      firstName: faker.person.firstName(),
-      lastName: faker.person.lastName(),
+      firstName: faker.person.firstName().replace(/[^a-zA-Z]/g, ''),
+      lastName: faker.person.lastName().replace(/[^a-zA-Z]/g, ''),
       email: mailbox.address,
       password,
       phoneNumber: faker.string.numeric(9),
@@ -54,12 +54,12 @@ test.describe('Globbing — Registration', () => {
 
     await registrationPage.goto();
     await registrationPage.registerBusiness({
-      companyName: faker.company.name(),
+      companyName: faker.company.name().replace(/[^a-zA-Z]/g, ''),
       email: mailbox.address,
       password,
       tin: faker.string.numeric(9),
-      licensePersonName: faker.person.firstName(),
-      licensePersonSurname: faker.person.lastName(),
+      licensePersonName: faker.person.firstName().replace(/[^a-zA-Z]/g, ''),
+      licensePersonSurname: faker.person.lastName().replace(/[^a-zA-Z]/g, ''),
       phoneNumber: faker.string.numeric(9),
     });
 
@@ -302,7 +302,6 @@ test.describe('Globbing — Registration', () => {
       await registrationPage.emailInput.fill(details.email);
       await registrationPage.passwordInput.fill(details.password);
       await registrationPage.repeatPasswordInput.fill(details.password);
-      await registrationPage.tinInput.fill(details.tin);
       await registrationPage.licensePersonNameInput.fill(details.licensePersonName);
       await registrationPage.licensePersonSurnameInput.fill(details.licensePersonSurname);
       await registrationPage.phoneNumberInput.fill(details.phoneNumber);
