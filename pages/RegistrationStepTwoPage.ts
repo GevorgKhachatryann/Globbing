@@ -54,7 +54,6 @@ export class RegistrationStepTwoPage {
     const chosen = this.chooseBtn.locator('visible=true');
     await expect(chosen).toBeVisible({ timeout: 10000 });
     await chosen.click({ force: true });
-    await expect(chosen).toBeHidden({ timeout: 10000 });
   }
 
   async expectRegistrationComplete() {

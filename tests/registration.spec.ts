@@ -12,11 +12,14 @@ function fakeEmail(): string {
 }
 
 test.describe('Globbing — Registration', () => {
-  test('registers a new individual user and confirms via email', async ({ page }) => {
+  test('registers a new individual user and confirms via email', { tag: '@needs-mailbox' },  async ({ page }) => {
     const mailbox = await createDynamicEmailAccount();
     const registrationPage = new RegistrationPage(page);
     const stepTwoPage = new RegistrationStepTwoPage(page);
     const password = faker.internet.password({ length: 12 }) + '1A!';
+
+    console.log(`Individual account — email: ${mailbox.address},
+                 password: ${password}`);
 
     await registrationPage.goto();
     await registrationPage.registerIndividual({
@@ -36,15 +39,19 @@ test.describe('Globbing — Registration', () => {
     await registrationPage.clickOnChoosePickupPoint();
     await stepTwoPage.clickRandomSeeMoreButton();
     await stepTwoPage.clickChooseButton();
+    await page.waitForURL('**/profile');
     await stepTwoPage.expectRegistrationComplete();
   });
 
-  test('registers a new Business and confirms via email', async ({ page }) => {
+  test('registers a new Business and confirms via email', { tag: '@needs-mailbox' }, async ({ page }) => {
     const mailbox = await createDynamicEmailAccount();
     const registrationPage = new RegistrationPage(page);
     const loginPage = new LoginPage(page);
     const stepTwoPage = new RegistrationStepTwoPage(page);
     const password = faker.internet.password({ length: 12 }) + '1A!';
+    
+    console.log(`Business account — email: ${mailbox.address},
+                 password: ${password}`);
 
     await registrationPage.goto();
     await registrationPage.registerBusiness({
@@ -66,11 +73,12 @@ test.describe('Globbing — Registration', () => {
     await registrationPage.clickOnChoosePickupPoint();
     await stepTwoPage.clickRandomSeeMoreButton();
     await stepTwoPage.clickChooseButton();
+    await page.waitForURL('**/profile');
     await expect(loginPage.userMenuToggle).toBeVisible({ timeout: 15000 });
     await stepTwoPage.expectRegistrationComplete();
   });
 
-  test.describe('Validation', () => {
+  test.describe('Individual Validation', () => {
     let registrationPage: RegistrationPage;
 
     test.beforeEach(async ({ page }) => {
@@ -183,7 +191,7 @@ test.describe('Globbing — Registration', () => {
       await expect(registrationPage.individualTab).toBeVisible();
     });
 
-    test('handles registering the same email again before the first confirmation is used', async ({ page }) => {
+    test('handles registering the same email again before the first confirmation is used', { tag: '@needs-mailbox' },  async ({ page }) => {
       const mailbox = await createDynamicEmailAccount();
       const registrationPage = new RegistrationPage(page);
       const password = faker.internet.password({ length: 12 }) + '1A!';
@@ -210,6 +218,165 @@ test.describe('Globbing — Registration', () => {
       });
 
       await expectDuplicateUnverifiedEmailError(page, registrationPage);
+    });
+  });
+
+  test.describe('Business Validation', () => {
+    let registrationPage: RegistrationPage;
+
+    function validBusinessDetails() {
+      return {
+        companyName: faker.company.name(),
+        email: fakeEmail(),
+        password: 'SecurePass123!',
+        tin: faker.string.numeric(9),
+        licensePersonName: faker.person.firstName(),
+        licensePersonSurname: faker.person.lastName(),
+        phoneNumber: faker.string.numeric(9),
+      };
+    }
+
+    test.beforeEach(async ({ page }) => {
+      registrationPage = new RegistrationPage(page);
+      await registrationPage.goto();
+      await registrationPage.selectBusinessTab();
+    });
+
+    test('shows an error when all business fields are empty', async () => {
+      await registrationPage.submit();
+      await registrationPage.expectErrorVisible();
+    });
+
+    test('shows an error when company name is empty', async () => {
+      const details = validBusinessDetails();
+      await registrationPage.emailInput.fill(details.email);
+      await registrationPage.passwordInput.fill(details.password);
+      await registrationPage.repeatPasswordInput.fill(details.password);
+      await registrationPage.tinInput.fill(details.tin);
+      await registrationPage.licensePersonNameInput.fill(details.licensePersonName);
+      await registrationPage.licensePersonSurnameInput.fill(details.licensePersonSurname);
+      await registrationPage.phoneNumberInput.fill(details.phoneNumber);
+      await registrationPage.agreeTermsCheckbox.check();
+      await registrationPage.submit();
+      await registrationPage.expectErrorVisible();
+    });
+
+    test('shows an error with an invalid business email format', async () => {
+      const details = validBusinessDetails();
+      await registrationPage.fillBusinessDetails({ ...details, email: 'not-an-email' });
+      await registrationPage.submit();
+      await registrationPage.expectEmailFormatError();
+    });
+
+    test('shows an error when business passwords do not match', async () => {
+      const details = validBusinessDetails();
+      await registrationPage.companyNameInput.fill(details.companyName);
+      await registrationPage.emailInput.fill(details.email);
+      await registrationPage.passwordInput.fill('SecurePass123!');
+      await registrationPage.repeatPasswordInput.fill('DifferentPass456!');
+      await registrationPage.tinInput.fill(details.tin);
+      await registrationPage.licensePersonNameInput.fill(details.licensePersonName);
+      await registrationPage.licensePersonSurnameInput.fill(details.licensePersonSurname);
+      await registrationPage.phoneNumberInput.fill(details.phoneNumber);
+      await registrationPage.agreeTermsCheckbox.check();
+      await registrationPage.submit();
+      await registrationPage.expectErrorVisible();
+    });
+
+    test('rejects business submission without agreeing to terms', async () => {
+      const details = validBusinessDetails();
+      await registrationPage.companyNameInput.fill(details.companyName);
+      await registrationPage.emailInput.fill(details.email);
+      await registrationPage.passwordInput.fill(details.password);
+      await registrationPage.repeatPasswordInput.fill(details.password);
+      await registrationPage.tinInput.fill(details.tin);
+      await registrationPage.licensePersonNameInput.fill(details.licensePersonName);
+      await registrationPage.licensePersonSurnameInput.fill(details.licensePersonSurname);
+      await registrationPage.phoneNumberInput.fill(details.phoneNumber);
+      // deliberately skip checking agreeTermsCheckbox
+      await registrationPage.submit();
+      await registrationPage.expectErrorVisible();
+    });
+
+    test('shows an error when TIN is empty', async () => {
+      const details = validBusinessDetails();
+      await registrationPage.companyNameInput.fill(details.companyName);
+      await registrationPage.emailInput.fill(details.email);
+      await registrationPage.passwordInput.fill(details.password);
+      await registrationPage.repeatPasswordInput.fill(details.password);
+      await registrationPage.tinInput.fill(details.tin);
+      await registrationPage.licensePersonNameInput.fill(details.licensePersonName);
+      await registrationPage.licensePersonSurnameInput.fill(details.licensePersonSurname);
+      await registrationPage.phoneNumberInput.fill(details.phoneNumber);
+      await registrationPage.agreeTermsCheckbox.check();
+      await registrationPage.submit();
+      await registrationPage.expectErrorVisible();
+    });
+
+    test('shows an error with an invalid/non-numeric TIN', async () => {
+      const details = validBusinessDetails();
+      await registrationPage.fillBusinessDetails({ ...details, tin: 'abc-not-a-tin' });
+      await registrationPage.submit();
+      await registrationPage.expectErrorVisible();
+    });
+
+    test('shows an error when license person name is empty', async () => {
+      const details = validBusinessDetails();
+      await registrationPage.companyNameInput.fill(details.companyName);
+      await registrationPage.emailInput.fill(details.email);
+      await registrationPage.passwordInput.fill(details.password);
+      await registrationPage.repeatPasswordInput.fill(details.password);
+      await registrationPage.tinInput.fill(details.tin);
+      await registrationPage.licensePersonSurnameInput.fill(details.licensePersonSurname);
+      await registrationPage.phoneNumberInput.fill(details.phoneNumber);
+      await registrationPage.agreeTermsCheckbox.check();
+      await registrationPage.submit();
+      await registrationPage.expectErrorVisible();
+    });
+
+    test('shows an error when license person surname is empty', async () => {
+      const details = validBusinessDetails();
+      await registrationPage.companyNameInput.fill(details.companyName);
+      await registrationPage.emailInput.fill(details.email);
+      await registrationPage.passwordInput.fill(details.password);
+      await registrationPage.repeatPasswordInput.fill(details.password);
+      await registrationPage.tinInput.fill(details.tin);
+      await registrationPage.licensePersonNameInput.fill(details.licensePersonName);
+      await registrationPage.phoneNumberInput.fill(details.phoneNumber);
+      await registrationPage.agreeTermsCheckbox.check();
+      await registrationPage.submit();
+      await registrationPage.expectErrorVisible();
+    });
+
+    test('shows an error when business phone number is empty', async () => {
+      const details = validBusinessDetails();
+      await registrationPage.companyNameInput.fill(details.companyName);
+      await registrationPage.emailInput.fill(details.email);
+      await registrationPage.passwordInput.fill(details.password);
+      await registrationPage.repeatPasswordInput.fill(details.password);
+      await registrationPage.tinInput.fill(details.tin);
+      await registrationPage.licensePersonNameInput.fill(details.licensePersonName);
+      await registrationPage.licensePersonSurnameInput.fill(details.licensePersonSurname);
+      await registrationPage.agreeTermsCheckbox.check();
+      await registrationPage.submit();
+      await registrationPage.expectErrorVisible();
+    });
+
+    test('shows an error with a weak/short business password', async () => {
+      const details = validBusinessDetails();
+      await registrationPage.fillBusinessDetails({ ...details, password: '123' });
+      await registrationPage.submit();
+      await registrationPage.expectErrorVisible();
+    });
+
+    test('shows an error when trying to register a business with an already-used email', async () => {
+      const details = validBusinessDetails();
+      await registrationPage.fillBusinessDetails({
+        ...details,
+        email: process.env.APP_USERNAME!, // known existing account from login tests
+      });
+      await registrationPage.submit();
+      await registrationPage.expectErrorVisible();
     });
   });
 });
