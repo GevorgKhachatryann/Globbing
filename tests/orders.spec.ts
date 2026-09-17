@@ -12,7 +12,8 @@ import {
 } from '../data/orderTestData';
 
 const INVOICE_FILE_PATH = path.join(__dirname, '../data/sample-invoice.pdf');
-const country = 'USA'; // fixed country for validation cases, doesn't need to run per-country
+const country = 'ԱՄՆ'; // fixed country for validation cases, doesn't need to run per-country
+
 
 test.describe('Globbing — Add Parcel', () => {
   let loginPage: LoginPage;
@@ -25,7 +26,6 @@ test.describe('Globbing — Add Parcel', () => {
     await loginPage.goto();
     await loginPage.login(process.env.APP_USERNAME!, process.env.APP_PASSWORD!);
     await expect(page).toHaveURL(/profile/);
-
     await orderPage.goto();
   });
 
