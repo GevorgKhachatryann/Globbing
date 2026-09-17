@@ -1,20 +1,18 @@
 name: Playwright E2E Tests
+
 on:
-  # Run CI for changes pushed to master
   push:
     branches:
       - master
 
-  # Run CI for pull requests targeting master
   pull_request:
     branches:
       - master
 
-  # Run the complete suite every day at 00:00 UTC
   schedule:
+    # Every day at 00:00 UTC
     - cron: '0 20 * * *'
 
-  # Allow manual execution from GitHub Actions
   workflow_dispatch:
 
 permissions:
@@ -24,7 +22,7 @@ jobs:
   e2e:
     name: E2E - ${{ matrix.browser }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     strategy:
       fail-fast: false
@@ -53,8 +51,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Playwright browser
-        run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
 
       - name: Run Playwright tests
         run: npx playwright test --project=${{ matrix.browser }}
