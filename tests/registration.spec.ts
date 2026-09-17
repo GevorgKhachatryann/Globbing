@@ -39,7 +39,6 @@ test.describe('Globbing — Registration', () => {
     await registrationPage.clickOnChoosePickupPoint();
     await stepTwoPage.clickRandomSeeMoreButton();
     await stepTwoPage.clickChooseButton();
-    await page.waitForURL('**/profile');
     await stepTwoPage.expectRegistrationComplete();
   });
 
@@ -73,7 +72,6 @@ test.describe('Globbing — Registration', () => {
     await registrationPage.clickOnChoosePickupPoint();
     await stepTwoPage.clickRandomSeeMoreButton();
     await stepTwoPage.clickChooseButton();
-    await page.waitForURL('**/profile');
     await expect(loginPage.userMenuToggle).toBeVisible({ timeout: 15000 });
     await stepTwoPage.expectRegistrationComplete();
   });

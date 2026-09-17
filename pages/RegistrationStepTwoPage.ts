@@ -11,9 +11,8 @@ export class RegistrationStepTwoPage {
 
   constructor(page: Page) {
     this.page = page;
-    // TODO: replace with real locators once you inspect the actual step-two page
     this.seeMoreButtons = page.locator('div.w-100.wh-text-box > span');
-    this.chooseBtn = page.locator('span.custom-btn-wrapper > button');
+    this.chooseBtn = page.locator('button.choose-warehouse');
     this.serviceCenterDropdownToggle = page.locator('.service-center-dropdown .arrow');
     this.serviceCenterOptions = page.locator('.service-center-dropdown .dropdown-item');
     this.confirmButton = page.locator('#confirm-registration');
