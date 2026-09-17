@@ -17,6 +17,7 @@ test.describe('Globbing — Registration', () => {
     const registrationPage = new RegistrationPage(page);
     const stepTwoPage = new RegistrationStepTwoPage(page);
     const password = faker.internet.password({ length: 12 }) + '1A!';
+    test.setTimeout(60000); // give the email round-trip room to breathe
 
     console.log(`Individual account — email: ${mailbox.address},
                  password: ${password}`);
@@ -48,7 +49,8 @@ test.describe('Globbing — Registration', () => {
     const loginPage = new LoginPage(page);
     const stepTwoPage = new RegistrationStepTwoPage(page);
     const password = faker.internet.password({ length: 12 }) + '1A!';
-    
+    test.setTimeout(60000); // give the email round-trip room to breathe
+
     console.log(`Business account — email: ${mailbox.address},
                  password: ${password}`);
 

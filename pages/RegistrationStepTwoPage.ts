@@ -8,6 +8,7 @@ export class RegistrationStepTwoPage {
   readonly confirmButton: Locator;
   readonly successMessage: Locator;
   readonly chooseBtn: Locator;
+  private activePointId: string | null = null;
 
   constructor(page: Page) {
     this.page = page;
@@ -20,13 +21,23 @@ export class RegistrationStepTwoPage {
   }
 
   async clickRandomSeeMoreButton() {
-    const visibleButtons = this.seeMoreButtons.locator('visible=true');
-    const count = await visibleButtons.count();
+    const seeMoreButtons = this.page.locator('[id^="see-more-"]');
+
+    // Auto-retries until at least one button is present, or throws a clear
+    // timeout error instead of racing the global test timeout.
+    await expect(seeMoreButtons.first()).toBeVisible({ timeout: 15000 });
+    const count = await seeMoreButtons.count();
+
     const randomIndex = Math.floor(Math.random() * count);
-    const chosen = visibleButtons.nth(randomIndex);
+    const chosen = seeMoreButtons.nth(randomIndex);
+
+    const fullId = await chosen.getAttribute('id');
+    if (!fullId) {
+      throw new Error('Clicked "See more" button has no id attribute');
+    }
+    this.activePointId = fullId.replace('see-more-', '');
 
     await chosen.scrollIntoViewIfNeeded();
-    await chosen.waitFor({ state: 'visible', timeout: 10000 });
 
     const browserName = this.page.context().browser()?.browserType().name();
     if (browserName === 'webkit') {
@@ -34,6 +45,22 @@ export class RegistrationStepTwoPage {
     } else {
       await chosen.click();
     }
+  }
+
+  async clickChooseButton() {
+    if (!this.activePointId) {
+      throw new Error('clickChooseButton called before clickRandomSeeMoreButton');
+    }
+
+    const chosen = this.page
+      .locator(`button[data-id="${this.activePointId}"]`)
+      .locator('visible=true');
+
+    await chosen.scrollIntoViewIfNeeded();
+    // Confirms the bounding box actually intersects the viewport before
+    // attempting to click — this is what force:true can't guarantee.
+    await expect(chosen).toBeInViewport({ timeout: 10000 });
+    await chosen.click();
   }
 
     async selectServiceCenterByIndex(index: number) {
@@ -47,12 +74,6 @@ export class RegistrationStepTwoPage {
 
   async expectSuccessVisible() {
     await expect(this.successMessage.first()).toBeVisible();
-  }
-
-  async clickChooseButton() {
-    const chosen = this.chooseBtn.locator('visible=true');
-    await expect(chosen).toBeVisible({ timeout: 10000 });
-    await chosen.click({ force: true });
   }
 
   async expectRegistrationComplete() {

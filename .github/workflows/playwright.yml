@@ -64,7 +64,7 @@ jobs:
           BASIC_AUTH_USER: ${{ secrets.BASIC_AUTH_USER }}
 
       - name: Run general Playwright tests
-        run: npx playwright test --grep-invert "@needs-mailbox" --workers=2
+        run: npx playwright test --grep-invert "@needs-mailbox" --workers=1
         env:
           APP_USERNAME: ${{ secrets.APP_USERNAME }}
           APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
