@@ -14,6 +14,7 @@ import 'dotenv/config'
  */
 export default defineConfig({
   testDir: './tests',
+  globalTeardown: require.resolve('./tests/global-teardown'),
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */

@@ -28,7 +28,6 @@ export async function getRandomDomain(): Promise<string> {
   const api = await getContext();
   const res = await api.get('/domains');
   const body = await res.json();
-  await api.dispose();
 
   const domains = body['hydra:member'] ?? [];
   const activeDomains = domains.filter((d: any) => d.isActive === true);
@@ -50,7 +49,6 @@ export async function createAccount(address: string, password: string): Promise<
     if (!res.ok()) {
       throw new Error(`mail.tm account creation failed: ${res.status()} ${await res.text()}`);
     }
-    await api.dispose();
   });
 }
 
@@ -85,7 +83,6 @@ export async function getToken(address: string, password: string): Promise<strin
     data: { address, password },
   });
   const body = await res.json();
-  await api.dispose();
   return body.token;
 }
 
@@ -96,7 +93,6 @@ export async function listMessages(token: string): Promise<MailTmMessage[]> {
       headers: { Authorization: `Bearer ${token}` },
     });
     const body = await res.json();
-    await api.dispose();
     return body['hydra:member'] ?? [];
   });
 }
@@ -107,7 +103,6 @@ export async function getMessageBody(token: string, messageId: string): Promise<
     headers: { Authorization: `Bearer ${token}` },
   });
   const body = await res.json();
-  await api.dispose();
   // html is an array of HTML strings; text is the plain-text fallback
   return Array.isArray(body.html) ? body.html.join('\n') : body.text ?? '';
 }
@@ -149,4 +144,11 @@ export function extractConfirmationLink(htmlBody: string): string {
   }
 
   return confirmLink.replace(/&amp;/g, '&');
+}
+
+export async function closeMailTmContext(): Promise<void> {
+  if (sharedContext) {
+    await sharedContext.dispose();
+    sharedContext = null;
+  }
 }
