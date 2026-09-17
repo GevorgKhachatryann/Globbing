@@ -56,14 +56,22 @@ export class RegistrationStepTwoPage {
       .locator(`button[data-id="${this.activePointId}"]`)
       .locator('visible=true');
 
+    // Scroll the results panel incrementally until the target node mounts.
+    const listContainer = this.page.locator('.tabpanel, [role="tabpanel"]').first();
+    await expect
+      .poll(async () => {
+        if (await chosen.count() > 0) return true;
+        await listContainer.evaluate(el => el.scrollBy(0, 400));
+        return false;
+      }, { timeout: 30000, intervals: [300] })
+      .toBe(true);
+
     await chosen.scrollIntoViewIfNeeded();
-    // Confirms the bounding box actually intersects the viewport before
-    // attempting to click — this is what force:true can't guarantee.
     await expect(chosen).toBeInViewport({ timeout: 10000 });
     await chosen.click();
   }
 
-    async selectServiceCenterByIndex(index: number) {
+  async selectServiceCenterByIndex(index: number) {
     await this.serviceCenterDropdownToggle.click();
     await this.serviceCenterOptions.nth(index).click();
   }

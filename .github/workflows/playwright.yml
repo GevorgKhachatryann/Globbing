@@ -40,8 +40,12 @@ jobs:
           retention-days: 14
 
   test-general:
-    timeout-minutes: 30
+    timeout-minutes: 20
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [chromium, firefox, webkit]
     steps:
       - uses: actions/checkout@v4
 
