@@ -57,14 +57,15 @@ export class OrderPage {
     await this.shopDropdownArrow.click();
   }
 
-  async selectShopByIndex(index: number) {
-    await this.openShopDropdown();
-    await this.shopOptions.nth(index).click();
-  }
+  // async selectShopByIndex(index: number) {
+  //   await this.openShopDropdown();
+  //   await this.shopOptions.nth(index).click();
+  // }
 
   async selectShopByName(shopName: string) {
     await this.openShopDropdown();
-    await this.shopOptions.filter({ hasText: shopName }).click();
+    await this.page.locator(`[data-value="${shopName}"]`).click();
+    // await this.shopOptions.filter({ hasText: shopName }).click();
   }
 
   async fillOrderName(orderName: string) {

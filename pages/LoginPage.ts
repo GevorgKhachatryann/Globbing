@@ -24,7 +24,7 @@ export class LoginPage {
     this.passwordError = loginFormErrors.nth(1);
     this.forgotPasswordLink = page.locator('.forgot-pass');
     this.registerLink = page.locator('#login-banner  p:nth-child(1) > a');
-    this.userMenuToggle = this.page.locator('.head-bar div:nth-child(7) > button');
+    this.userMenuToggle = this.page.locator('.head-bar div:nth-child(7) > button .arrow');
     this.logoutLink = this.page.locator('a[href$="/logout/"]:visible');
   }
 

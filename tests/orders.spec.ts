@@ -30,9 +30,9 @@ test.describe('Globbing — Add Parcel', () => {
   });
 
   for (const country of countries) {
-    test(`adds a parcel with country: ${country}`, async () => {
+  for (const shopName of shopsByCountry[country]) {
+    test(`adds a parcel with country: ${country}, shop: ${shopName}`, async () => {
       const trackingNumber = `TRACK${faker.string.numeric(9)}`;
-      const shopName = faker.helpers.arrayElement(shopsByCountry[country]);
       const insuranceType = faker.helpers.arrayElement(insuranceOptions);
       const price = faker.commerce.price({ min: PRICE_RANGE.min, max: PRICE_RANGE.max, dec: 2 });
       const orderName = faker.commerce.productName();
@@ -57,6 +57,7 @@ test.describe('Globbing — Add Parcel', () => {
       await expect(orderPage.page).toHaveURL(/my-orders/);
     });
   }
+}
 
   test('shows an error when tracking number is empty', async () => {
     await orderPage.selectCountryByName(country);
@@ -179,10 +180,10 @@ test.describe('Globbing — Add Parcel', () => {
   });
 
   test('changing country after selecting a shop resets the shop selection', async () => {
-    await orderPage.selectCountryByName('USA');
-    await orderPage.selectShopByName(faker.helpers.arrayElement(shopsByCountry['USA']));
-    await orderPage.selectCountryByName('England');
-    expect(orderPage.shopDropdownToggle).toHaveText('Shop name')
+    await orderPage.selectCountryByName('ԱՄՆ');
+    await orderPage.selectShopByName(faker.helpers.arrayElement(shopsByCountry['ԱՄՆ']));
+    await orderPage.selectCountryByName('Անգլիա');
+    expect(orderPage.shopDropdownToggle).toHaveText('Խանութի անվանում')
   });
 
   
