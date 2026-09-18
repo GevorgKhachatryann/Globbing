@@ -1,16 +1,16 @@
 // Shop names stay in English — brand names render unchanged on the site
 // regardless of locale, so no translation needed here.
 export const shopsByCountry: Record<string, string[]> = {
-  ԱՄՆ: ['A.L.C.', '1people', 'AHparts', 'ALDO SHOES', 'ALYX Studio'],
-  Անգլիա: ['ARKET', 'AXXA', 'Adidas UK', 'AllBeauty', 'Amazon UK'],
-  Չինաստան: ['AliExpress', 'Tmall', 'Vmall', 'JD', 'Taobao'],
-  Գերմանիա: ['Amazon', 'ASOS Germany', 'Amigo Germany'],
-  Իտալիա: ['Armani Beauty', 'Bershka Italy', 'C&A'],
-  Դուբայ: ['Burjauto', 'Carbox', 'JUMBO'],
+  ԱՄՆ: ['A.L.C.', '1people', 'AHparts', 'ALDO SHOES'],
+  Անգլիա: ['ARKET', 'AXXA', 'Adidas UK', 'AllBeauty'],
+  Չինաստան: ['Tmall', 'Vmall', 'JD', 'Taobao'],
+  Գերմանիա: ['Amazon', 'Amigo Germany'],
+  Իտալիա: ['Armani Beauty', 'Bershka Italy'],
+  Դուբայ: ['Carbox', 'JUMBO'],
   Ռուսաստան: ['ANBIK', 'Askona', 'Befree'],
   Հունաստան: ['Adopt', 'Bershka Greece', 'Zara Greece'],
-  Կորեա: ['&Other Stories Korea', 'ARITAUM'],
-  Իսպանիա: ['Benetton Spain', 'Bibs Spain', 'Calvin Klein Spain'],
+ // Կորեա: ['&Other Stories Korea', 'ARITAUM'],
+  Իսպանիա: ['Benetton Spain', 'Calvin Klein Spain'],
 };
 
 // Keep English keys as the stable identifiers your tests loop over.

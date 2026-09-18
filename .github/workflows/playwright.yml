@@ -26,6 +26,7 @@ jobs:
 
     strategy:
       fail-fast: false
+      max-parallel: 1   # run matrix entries one at a time, in order
       matrix:
         browser:
           - chromium
