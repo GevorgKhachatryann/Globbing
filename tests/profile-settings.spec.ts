@@ -92,7 +92,7 @@ test.describe('Globbing — Profile Settings — Change Password', () => {
       // A second, independent session logged in as the same account —
       // this is what we expect to get kicked out once "log out from all
       // devices" is checked in the first session's password change.
-      const secondContext = await browser.newContext();
+      const secondContext = await browser.newContext({ baseURL: 'https://am.new.globbing.com/' }); // just add baseURL
       const secondPage = await secondContext.newPage();
       const secondLoginPage = new LoginPage(secondPage);
       await secondLoginPage.goto();

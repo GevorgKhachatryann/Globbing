@@ -56,7 +56,7 @@ export class RegistrationStepTwoPage {
       .locator(`button[data-id="${this.activePointId}"]`)
       .locator('visible=true');
 
-    await chosen.scrollIntoViewIfNeeded();
+    // await chosen.scrollIntoViewIfNeeded();
     await expect(chosen).toBeInViewport({ timeout: 15000 });
     await chosen.click();
   }
