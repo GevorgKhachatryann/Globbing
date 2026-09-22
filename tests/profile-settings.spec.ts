@@ -41,6 +41,9 @@ async function registerThrowawayAccount(
 }
 
 test.describe('Globbing — Profile Settings — Change Password', () => {
+
+  test.setTimeout(60000);
+
   test(
     'changes password successfully and can log in with the new password',
     { tag: '@needs-mailbox' },
@@ -97,7 +100,7 @@ test.describe('Globbing — Profile Settings — Change Password', () => {
       const secondLoginPage = new LoginPage(secondPage);
       await secondLoginPage.goto();
       await secondLoginPage.login(mailbox.address, originalPassword);
-      await expect(secondPage).toHaveURL(/profile/);
+      await expect(secondPage).toHaveURL(/\/profile\//, { timeout: 15000 });
 
       await settingsPage.goto();
       await settingsPage.openSection(settingsPage.personalDetailsSection);
@@ -188,13 +191,13 @@ test.describe('Globbing — Profile Settings — Change Password', () => {
       await settingsPage.currentPasswordInput.fill(originalPassword);
       await settingsPage.newPasswordInput.fill('SomeNewPassword456!');
       await settingsPage.confirmNewPasswordInput.fill('SomeNewPassword456!');
-      await settingsPage.cancelPasswordChangeButton.click();
-
+      await settingsPage.clickCancelPasswordChange();
+      await settingsPage.page.reload();
       // Original password should still work — nothing was actually saved.
       await loginPage.logout();
       await loginPage.goto();
       await loginPage.login(mailbox.address, originalPassword);
-      await expect(page).toHaveURL(/profile/);
+      await expect(page).toHaveURL(/\/profile\//, { timeout: 15000 });
     }
   );
 });

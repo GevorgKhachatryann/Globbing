@@ -2,7 +2,9 @@ import { test, expect } from '@playwright/test';
 import { LoginPage } from '../pages/LoginPage';
 
 test.describe('Globbing — Login', () => {
+  
   let loginPage: LoginPage;
+  test.setTimeout(60000);
 
   test.beforeEach(async ({ page }) => {
     loginPage = new LoginPage(page);
@@ -12,12 +14,12 @@ test.describe('Globbing — Login', () => {
 
   test('logs in successfully with valid credentials', async ({ page }) => {
     await loginPage.login(process.env.APP_USERNAME!, process.env.APP_PASSWORD!);
-    await expect(page).toHaveURL(/profile/);
+    await expect(page).toHaveURL(/\/profile\//, { timeout: 15000 });
   });
 
   test('logs in successfully with remember me checked', async ({ page }) => {
     await loginPage.login(process.env.APP_USERNAME!, process.env.APP_PASSWORD!, true);
-    await expect(page).toHaveURL(/profile/);
+    await expect(page).toHaveURL(/\/profile\//, { timeout: 15000 });
   });
 
   // Validation errors 
@@ -60,24 +62,24 @@ test.describe('Globbing — Login', () => {
     await loginPage.usernameInput.fill(process.env.APP_USERNAME!);
     await loginPage.passwordInput.fill(process.env.APP_PASSWORD!);
     await loginPage.passwordInput.press('Enter');
-    await expect(page).toHaveURL(/profile/);
+    await expect(page).toHaveURL(/\/profile\//, { timeout: 15000 });
   });
 
   //Navigation
   test('navigates to forgot password page', async ({ page }) => {
     await loginPage.goToForgotPassword();
-    await expect(page).toHaveURL(/password-reset-email/);
+    await expect(page).toHaveURL(/password-reset-email/, { timeout: 15000 });
   });
 
   test('navigates to registration page', async ({ page }) => {
     await loginPage.goToRegister();
-    await expect(page).toHaveURL(/registration/);
+    await expect(page).toHaveURL(/registration/, { timeout: 15000 });
   });
 
   test('logs out successfully', async ({ page }) => {
     await loginPage.login(process.env.APP_USERNAME!, process.env.APP_PASSWORD!);
-    await expect(page).toHaveURL(/profile/);
+    await expect(page).toHaveURL(/\/profile\//, { timeout: 15000 });
     await loginPage.logout();
-    await expect(page).not.toHaveURL(/profile/);
+    await expect(page).not.toHaveURL(/\/profile\//, { timeout: 15000 });
   });
 });

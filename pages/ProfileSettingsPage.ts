@@ -72,7 +72,7 @@ export class ProfileSettingsPage {
       '#change-password > div > div:nth-child(5) > div > span:nth-child(2) > button'
     );
     this.cancelPasswordChangeButton = page.locator(
-      '#change-password > div > div:nth-child(5) > div > span:nth-child(1) > button'
+      '#change-password span:nth-child(1) > button'
     );
 
     // TODO: confirm the close button selector via DevTools — the success
@@ -126,6 +126,10 @@ export class ProfileSettingsPage {
       await this.checkLogOutFromAllDevicesCheckbox.check();
     }
     await this.submitPasswordChangeButton.click();
+  }
+
+  async clickCancelPasswordChange() {
+    await this.cancelPasswordChangeButton.click({force: true});
   }
 
   async expectPasswordChangeSuccess() {

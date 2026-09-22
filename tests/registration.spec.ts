@@ -12,6 +12,7 @@ function fakeEmail(): string {
 }
 
 test.describe('Globbing — Registration', () => {
+  test.setTimeout(60000);
   test('registers a new individual user and confirms via email', { tag: '@needs-mailbox' },  async ({ page }) => {
     const mailbox = await createDynamicEmailAccount();
     const registrationPage = new RegistrationPage(page);

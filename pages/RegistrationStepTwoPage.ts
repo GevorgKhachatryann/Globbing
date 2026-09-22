@@ -39,12 +39,8 @@ export class RegistrationStepTwoPage {
 
     await chosen.scrollIntoViewIfNeeded();
 
-    const browserName = this.page.context().browser()?.browserType().name();
-    if (browserName === 'webkit') {
-      await chosen.click({ force: true });
-    } else {
-      await chosen.click();
-    }
+    await chosen.dblclick();
+
   }
 
   async clickChooseButton() {

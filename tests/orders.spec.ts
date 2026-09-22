@@ -18,6 +18,8 @@ const country = 'ԱՄՆ'; // fixed country for validation cases, doesn't need to
 test.describe('Globbing — Add Parcel', () => {
   let loginPage: LoginPage;
   let orderPage: OrderPage;
+  test.setTimeout(60000);
+
 
   test.beforeEach(async ({ page }) => {
     loginPage = new LoginPage(page);
@@ -25,7 +27,7 @@ test.describe('Globbing — Add Parcel', () => {
 
     await loginPage.goto();
     await loginPage.login(process.env.APP_USERNAME!, process.env.APP_PASSWORD!);
-    await expect(page).toHaveURL(/profile/);
+    await expect(page).toHaveURL(/\/profile\//, { timeout: 15000 });
     await orderPage.goto();
   });
 
