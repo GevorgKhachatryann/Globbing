@@ -56,7 +56,7 @@ test.describe('Globbing — Add Parcel', () => {
         deliveryMethod: deliveryMethodByCountry[country],
         filePath: INVOICE_FILE_PATH,
       });
-      await expect(orderPage.page).toHaveURL(/my-orders/);
+      await expect(orderPage.page).toHaveURL(/\/my-orders\//, { timeout: 15000 });
     });
   }
 }

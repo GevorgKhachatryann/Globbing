@@ -51,7 +51,7 @@ export default defineConfig({
       name: 'chromium',
       use: {
         //  ...devices['Desktop Chrome'],
-          viewport: null
+      viewport: { width: 1920, height: 1080 },
    },
     },
 
@@ -59,7 +59,7 @@ export default defineConfig({
       name: 'firefox',
       use: {
         //  ...devices['Desktop Firefox']
-          viewport: null
+          viewport: { width: 1920, height: 1080 }
          },
     },
 
@@ -67,7 +67,7 @@ export default defineConfig({
       name: 'webkit',
       use: { 
         // ...devices['Desktop Safari']
-          viewport: null
+          viewport: { width: 1920, height: 1080 }
        },
     },
 
