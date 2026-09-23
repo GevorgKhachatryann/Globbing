@@ -163,7 +163,7 @@ test.describe('Globbing — Add Parcel', () => {
       deliveryMethod: deliveryMethodByCountry[country],
       filePath: INVOICE_FILE_PATH,
     });
-    await expect(orderPage.page).toHaveURL(/my-orders/);
+    await expect(orderPage.page).toHaveURL(/\/my-orders\//, { timeout: 15000 });
   });
 
   test('rejects an extremely long order name', async () => {
@@ -187,7 +187,5 @@ test.describe('Globbing — Add Parcel', () => {
     await orderPage.selectCountryByName('Անգլիա');
     expect(orderPage.shopDropdownToggle).toHaveText('Խանութի անվանում')
   });
-
-  
 
 });

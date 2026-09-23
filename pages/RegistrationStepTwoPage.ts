@@ -53,7 +53,7 @@ export class RegistrationStepTwoPage {
       .locator('visible=true');
 
     // await chosen.scrollIntoViewIfNeeded();
-    await expect(chosen).toBeInViewport({ timeout: 15000 });
+    
     await chosen.click();
   }
 

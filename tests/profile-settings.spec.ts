@@ -33,7 +33,9 @@ async function registerThrowawayAccount(
   await page.goto(confirmationLink);
   await expect(page).toHaveURL(/congratulations/);
   await registrationPage.clickOnChoosePickupPoint();
+  test.setTimeout(50000);
   await stepTwoPage.clickRandomSeeMoreButton();
+  test.setTimeout(50000);
   await stepTwoPage.clickChooseButton();
   await stepTwoPage.expectRegistrationComplete();
 

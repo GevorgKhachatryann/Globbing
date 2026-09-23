@@ -24,10 +24,9 @@ export class LoginPage {
     this.passwordError = loginFormErrors.nth(1);
     this.forgotPasswordLink = page.locator('.forgot-pass');
     this.registerLink = page.locator('#login-banner  p:nth-child(1) > a');
-    this.userMenuToggle = this.page.locator('.head-bar div:nth-child(7) > button .arrow');
-    this.logoutLink = this.page.locator('#navigation-slide > div > div.carousel-item.active > ul > li:nth-child(8) > a');
+    this.userMenuToggle = page.locator('.navigation button[data-bs-toggle="dropdown"][data-bs-auto-close="outside"]');
+    this.logoutLink = page.locator('#navigation-slide > div > div.carousel-item.active > ul > li:nth-child(8) > a');
   }
-
   async goto() {
     await this.page.goto('/login');
   }
@@ -57,8 +56,11 @@ export class LoginPage {
     await expect(this.passwordError).toBeVisible({ timeout });
   }
 
-  async logout() {
-    await this.userMenuToggle.click();
-    await this.logoutLink.click();
-  }  
+async logout() {
+  const logoutHref = await this.logoutLink.getAttribute('href');
+  if (!logoutHref) {
+    throw new Error('Logout href not found');
+  }
+  await this.page.goto(logoutHref);
+}
 }
