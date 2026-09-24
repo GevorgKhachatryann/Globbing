@@ -18,7 +18,8 @@ const country = 'ԱՄՆ'; // fixed country for validation cases, doesn't need to
 test.describe('Globbing — Add Parcel', () => {
   let loginPage: LoginPage;
   let orderPage: OrderPage;
-  test.setTimeout(60000);
+  let createdTrackingNumbers: string[] = [];
+  test.setTimeout(90000); 
 
 
   test.beforeEach(async ({ page }) => {
@@ -56,7 +57,16 @@ test.describe('Globbing — Add Parcel', () => {
         deliveryMethod: deliveryMethodByCountry[country],
         filePath: INVOICE_FILE_PATH,
       });
+      createdTrackingNumbers.push(trackingNumber);  
       await expect(orderPage.page).toHaveURL(/\/my-orders\//, { timeout: 15000 });
+
+      for (const trackingNumber of createdTrackingNumbers) {
+        try {
+          await orderPage.deleteParcelByTrackingNumber(trackingNumber);
+        } catch (e) {
+          console.warn(`Cleanup failed for ${trackingNumber}:`, e);
+        }
+      }
     });
   }
 }
@@ -152,9 +162,10 @@ test.describe('Globbing — Add Parcel', () => {
   });
 
   test('accepts an order name with special characters', async () => {
+    const trackingNumber = `TRACK${faker.string.numeric(9)}`;
     await orderPage.selectCountryByName(country);
     await orderPage.addParcel({
-      trackingNumber: `TRACK${faker.string.numeric(9)}`,
+      trackingNumber: trackingNumber,
       shopName: faker.helpers.arrayElement(shopsByCountry[country]),
       orderName: `Test & Order "#1" — 50% off!`,
       price: faker.commerce.price({ min: PRICE_RANGE.min, max: PRICE_RANGE.max, dec: 2 }),
@@ -163,6 +174,7 @@ test.describe('Globbing — Add Parcel', () => {
       deliveryMethod: deliveryMethodByCountry[country],
       filePath: INVOICE_FILE_PATH,
     });
+    createdTrackingNumbers.push(trackingNumber); 
     await expect(orderPage.page).toHaveURL(/\/my-orders\//, { timeout: 15000 });
   });
 

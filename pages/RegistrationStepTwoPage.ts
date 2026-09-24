@@ -21,26 +21,20 @@ export class RegistrationStepTwoPage {
   }
 
   async clickRandomSeeMoreButton() {
-    const seeMoreButtons = this.page.locator('[id^="see-more-"]');
+    const visibleSeeMore = this.page
+      .locator('[id^="see-more-"]')
+      .filter({ visible: true });
 
-    // Auto-retries until at least one button is present, or throws a clear
-    // timeout error instead of racing the global test timeout.
-    await expect(seeMoreButtons.first()).toBeVisible({ timeout: 15000 });
-    const count = await seeMoreButtons.count();
+    await expect(visibleSeeMore.first()).toBeVisible({ timeout: 15000 });
 
-    const randomIndex = Math.floor(Math.random() * count);
-    const chosen = seeMoreButtons.nth(randomIndex);
-
-    const fullId = await chosen.getAttribute('id');
-    if (!fullId) {
-      throw new Error('Clicked "See more" button has no id attribute');
-    }
+    const count = await visibleSeeMore.count();
+    const fullId = await visibleSeeMore.nth(Math.floor(Math.random() * count)).getAttribute('id');
+    if (!fullId) throw new Error('"See more" button has no id attribute');
     this.activePointId = fullId.replace('see-more-', '');
 
-    await chosen.scrollIntoViewIfNeeded();
-
-    await chosen.dblclick();
-
+    const seeMore = this.page.locator(`[id="${fullId}"]`);
+    await seeMore.scrollIntoViewIfNeeded();
+    await seeMore.click(); // single click, not dblclick
   }
 
   async clickChooseButton() {
@@ -48,13 +42,12 @@ export class RegistrationStepTwoPage {
       throw new Error('clickChooseButton called before clickRandomSeeMoreButton');
     }
 
-    const chosen = this.page
-      .locator(`button[data-id="${this.activePointId}"]`)
-      .locator('visible=true');
+    const chooseBtn = this.page
+      .locator(`.choose-warehouse[data-id="${this.activePointId}"]`)
+      .filter({ visible: true });
 
-    // await chosen.scrollIntoViewIfNeeded();
-    
-    await chosen.click();
+    await expect(chooseBtn).toHaveCount(1, { timeout: 10000 });
+    await chooseBtn.click();
   }
 
   async selectServiceCenterByIndex(index: number) {

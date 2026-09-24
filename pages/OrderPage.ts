@@ -57,10 +57,21 @@ export class OrderPage {
     await this.shopDropdownArrow.click();
   }
 
-  // async selectShopByIndex(index: number) {
-  //   await this.openShopDropdown();
-  //   await this.shopOptions.nth(index).click();
-  // }
+  async deleteParcelByTrackingNumber(trackingNumber: string) {
+
+    const deleteBtn = this.page.locator(
+      `.delete-parcel-btn[data-order-number="${trackingNumber}"]`
+    );
+    await expect(deleteBtn).toHaveCount(1, { timeout: 50000 });
+    await deleteBtn.click();
+
+    await this.page.locator('#saleOrderDeleteBtn').click();
+
+    await this.page.reload();
+    await expect(
+      this.page.locator(`.delete-parcel-btn[data-order-number="${trackingNumber}"]`)
+    ).toHaveCount(0);
+  }
 
   async selectShopByName(shopName: string) {
     await this.openShopDropdown();
