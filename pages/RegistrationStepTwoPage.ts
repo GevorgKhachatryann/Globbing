@@ -20,7 +20,7 @@ export class RegistrationStepTwoPage {
     this.successMessage = page.locator('.success-message:visible');
   }
 
-  async clickRandomSeeMoreButton() {
+  private async pickAndOpenRandomPoint(): Promise<string> {
     const visibleSeeMore = this.page
       .locator('[id^="see-more-"]')
       .filter({ visible: true });
@@ -28,33 +28,45 @@ export class RegistrationStepTwoPage {
     await expect(visibleSeeMore.first()).toBeVisible({ timeout: 15000 });
 
     const count = await visibleSeeMore.count();
-    const chosen = visibleSeeMore.nth(Math.floor(Math.random() * count));
-    const fullId = await chosen.getAttribute('id');
+    const fullId = await visibleSeeMore.nth(Math.floor(Math.random() * count)).getAttribute('id');
     if (!fullId) throw new Error('"See more" button has no id attribute');
-    this.activePointId = fullId.replace('see-more-', '');
 
+    const pointId = fullId.replace('see-more-', '');
     const seeMore = this.page.locator(`[id="${fullId}"]`);
     await seeMore.scrollIntoViewIfNeeded();
+    // Let any scroll animation settle before clicking, so the click
+    // lands on the intended element instead of a mid-scroll position.
+    await this.page.waitForTimeout(300);
+    await seeMore.click();
 
-    // DIAGNOSTIC: what's actually at the click point?
-    const box = await seeMore.boundingBox();
-    console.log('bounding box:', box);
-    if (box) {
-      const elementAtPoint = await this.page.evaluate(({ x, y }) => {
-        const el = document.elementFromPoint(x, y);
-        return el ? { tag: el.tagName, id: el.id, cls: el.className } : null;
-      }, { x: box.x + box.width / 2, y: box.y + box.height / 2 });
-      console.log('element actually at click point:', elementAtPoint);
+    return pointId;
+  }
+
+  async clickRandomSeeMoreButton() {
+    // Retry the whole pick-and-click sequence a few times: occasionally
+    // a single click doesn't register (see-more expands nothing), which
+    // otherwise surfaces later as a confusing "choose button never found" error.
+    let lastError: unknown;
+
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      const pointId = await this.pickAndOpenRandomPoint();
+      const chooseBtn = this.page
+        .locator(`.choose-warehouse[data-id="${pointId}"]`)
+        .filter({ visible: true });
+
+      try {
+        await expect(chooseBtn).toHaveCount(1, { timeout: 6000 });
+        this.activePointId = pointId;
+        return; // success
+      } catch (e) {
+        lastError = e;
+        console.warn(`Attempt ${attempt}: choose button for point ${pointId} never appeared, retrying with a new row.`);
+      }
     }
 
-    await seeMore.click();
-    await this.page.waitForTimeout(500);
-
-    const allButtons = await this.page.locator('.choose-warehouse').evaluateAll(els =>
-      els.map(e => ({ id: e.getAttribute('data-id'), visible: (e as HTMLElement).offsetParent !== null }))
+    throw new Error(
+      `clickRandomSeeMoreButton: choose button never appeared after 3 attempts. Last error: ${lastError}`
     );
-    console.log('activePointId:', this.activePointId);
-    console.log('all choose-warehouse buttons:', allButtons);
   }
 
   async clickChooseButton() {
