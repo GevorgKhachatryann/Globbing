@@ -28,13 +28,33 @@ export class RegistrationStepTwoPage {
     await expect(visibleSeeMore.first()).toBeVisible({ timeout: 15000 });
 
     const count = await visibleSeeMore.count();
-    const fullId = await visibleSeeMore.nth(Math.floor(Math.random() * count)).getAttribute('id');
+    const chosen = visibleSeeMore.nth(Math.floor(Math.random() * count));
+    const fullId = await chosen.getAttribute('id');
     if (!fullId) throw new Error('"See more" button has no id attribute');
     this.activePointId = fullId.replace('see-more-', '');
 
     const seeMore = this.page.locator(`[id="${fullId}"]`);
     await seeMore.scrollIntoViewIfNeeded();
-    await seeMore.click(); // single click, not dblclick
+
+    // DIAGNOSTIC: what's actually at the click point?
+    const box = await seeMore.boundingBox();
+    console.log('bounding box:', box);
+    if (box) {
+      const elementAtPoint = await this.page.evaluate(({ x, y }) => {
+        const el = document.elementFromPoint(x, y);
+        return el ? { tag: el.tagName, id: el.id, cls: el.className } : null;
+      }, { x: box.x + box.width / 2, y: box.y + box.height / 2 });
+      console.log('element actually at click point:', elementAtPoint);
+    }
+
+    await seeMore.click();
+    await this.page.waitForTimeout(500);
+
+    const allButtons = await this.page.locator('.choose-warehouse').evaluateAll(els =>
+      els.map(e => ({ id: e.getAttribute('data-id'), visible: (e as HTMLElement).offsetParent !== null }))
+    );
+    console.log('activePointId:', this.activePointId);
+    console.log('all choose-warehouse buttons:', allButtons);
   }
 
   async clickChooseButton() {

@@ -57,20 +57,32 @@ export class OrderPage {
     await this.shopDropdownArrow.click();
   }
 
-  async deleteParcelByTrackingNumber(trackingNumber: string) {
-
-    const deleteBtn = this.page.locator(
+  private deleteButtonFor(trackingNumber: string): Locator {
+    return this.page.locator(
       `.delete-parcel-btn[data-order-number="${trackingNumber}"]`
     );
-    await expect(deleteBtn).toHaveCount(1, { timeout: 50000 });
+  }
+
+  async deleteParcelByTrackingNumber(trackingNumber: string) {
+    const deleteBtn = this.deleteButtonFor(trackingNumber);
+    const myOrdersUrl = this.page.url(); // capture wherever we already are, right after redirect
+
+    await expect(async () => {
+    await this.page.goto(myOrdersUrl);
+      await this.page.waitForLoadState('networkidle');
+      await expect(deleteBtn).toHaveCount(1, { timeout: 3000 });
+    }).toPass({ timeout: 30000 });
+
+    await deleteBtn.scrollIntoViewIfNeeded();
     await deleteBtn.click();
 
-    await this.page.locator('#saleOrderDeleteBtn').click();
+    const confirmBtn = this.page.locator('#saleOrderDeleteBtn');
+    await expect(confirmBtn).toBeVisible({ timeout: 10000 }); // modal fade-in
+    await confirmBtn.click();
 
     await this.page.reload();
-    await expect(
-      this.page.locator(`.delete-parcel-btn[data-order-number="${trackingNumber}"]`)
-    ).toHaveCount(0);
+    await this.page.waitForLoadState('networkidle');
+    await expect(this.deleteButtonFor(trackingNumber)).toHaveCount(0, { timeout: 10000 });
   }
 
   async selectShopByName(shopName: string) {
