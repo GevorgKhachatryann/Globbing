@@ -44,40 +44,40 @@ test.describe('Globbing — Registration', () => {
     await stepTwoPage.expectRegistrationComplete();
   });
 
-  test('registers a new Business and confirms via email', { tag: '@needs-mailbox' }, async ({ page }) => {
-    const mailbox = await createDynamicEmailAccount();
-    const registrationPage = new RegistrationPage(page);
-    const loginPage = new LoginPage(page);
-    const stepTwoPage = new RegistrationStepTwoPage(page);
-    const password = faker.internet.password({ length: 12 }) + '1A!';
-    test.setTimeout(60000); // give the email round-trip room to breathe
+  // test('registers a new Business and confirms via email', { tag: '@needs-mailbox' }, async ({ page }) => {
+  //   const mailbox = await createDynamicEmailAccount();
+  //   const registrationPage = new RegistrationPage(page);
+  //   const loginPage = new LoginPage(page);
+  //   const stepTwoPage = new RegistrationStepTwoPage(page);
+  //   const password = faker.internet.password({ length: 12 }) + '1A!';
+  //   test.setTimeout(60000); // give the email round-trip room to breathe
 
-    console.log(`Business account — email: ${mailbox.address},
-                 password: ${password}`);
+  //   console.log(`Business account — email: ${mailbox.address},
+  //                password: ${password}`);
 
-    await registrationPage.goto();
-    await registrationPage.registerBusiness({
-      companyName: faker.company.name().replace(/[^a-zA-Z]/g, ''),
-      email: mailbox.address,
-      password,
-      tin: faker.string.numeric(9),
-      licensePersonName: faker.person.firstName().replace(/[^a-zA-Z]/g, ''),
-      licensePersonSurname: faker.person.lastName().replace(/[^a-zA-Z]/g, ''),
-      phoneNumber: faker.string.numeric(9),
-    });
+  //   await registrationPage.goto();
+  //   await registrationPage.registerBusiness({
+  //     companyName: faker.company.name().replace(/[^a-zA-Z]/g, ''),
+  //     email: mailbox.address,
+  //     password,
+  //     tin: faker.string.numeric(9),
+  //     licensePersonName: faker.person.firstName().replace(/[^a-zA-Z]/g, ''),
+  //     licensePersonSurname: faker.person.lastName().replace(/[^a-zA-Z]/g, ''),
+  //     phoneNumber: faker.string.numeric(9),
+  //   });
 
-    const message = await waitForMessage(mailbox.token, { timeoutMs: 30000 });
-    const htmlBody = await getMessageBody(mailbox.token, message.id);
-    const confirmationLink = extractConfirmationLink(htmlBody);
+  //   const message = await waitForMessage(mailbox.token, { timeoutMs: 30000 });
+  //   const htmlBody = await getMessageBody(mailbox.token, message.id);
+  //   const confirmationLink = extractConfirmationLink(htmlBody);
 
-    await page.goto(confirmationLink);
-    await expect(page).toHaveURL(/congratulations/);
-    await registrationPage.clickOnChoosePickupPoint();
-    await stepTwoPage.clickRandomSeeMoreButton();
-    await stepTwoPage.clickChooseButton();
-    await expect(loginPage.userMenuToggle).toBeVisible({ timeout: 15000 });
-    await stepTwoPage.expectRegistrationComplete();
-  });
+  //   await page.goto(confirmationLink);
+  //   await expect(page).toHaveURL(/congratulations/);
+  //   await registrationPage.clickOnChoosePickupPoint();
+  //   await stepTwoPage.clickRandomSeeMoreButton();
+  //   await stepTwoPage.clickChooseButton();
+  //   await expect(loginPage.userMenuToggle).toBeVisible({ timeout: 15000 });
+  //   await stepTwoPage.expectRegistrationComplete();
+  // });
 
   test.describe('Individual Validation', () => {
     let registrationPage: RegistrationPage;

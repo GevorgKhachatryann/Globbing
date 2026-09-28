@@ -41,6 +41,24 @@ export class OrderPage {
     this.recipientOptions = page.locator('.section.recipient-section .dropdown-item');
   }
 
+  // --- edit page locators (the declaration ID in the name differs per order) ---
+  // filter({ visible: true }) needs Playwright 1.51+. On older versions use .locator('visible=true').
+  get editOrderNameInput(): Locator {
+    return this.page
+      .locator('input[name^="declaration["][name$="][title]"]')
+      .filter({ visible: true });
+  }
+
+  get editPriceInput(): Locator {
+    // if its name is declaration[<id>][price], use:
+    // input[name^="declaration["][name$="][price]"]
+    return this.page.locator('.price-input').filter({ visible: true });
+  }
+
+  get editTrackingNumberInput(): Locator {
+    return this.page.locator('#tracking').filter({ visible: true });
+  }
+
   async goto() {
     await this.page.goto('/sale-order/');
   }
@@ -65,10 +83,10 @@ export class OrderPage {
 
   async deleteParcelByTrackingNumber(trackingNumber: string) {
     const deleteBtn = this.deleteButtonFor(trackingNumber);
-    const myOrdersUrl = this.page.url(); // capture wherever we already are, right after redirect
+    const myOrdersUrl = this.page.url();
 
     await expect(async () => {
-    await this.page.goto(myOrdersUrl);
+      await this.page.goto(myOrdersUrl);
       await this.page.waitForLoadState('networkidle');
       await expect(deleteBtn).toHaveCount(1, { timeout: 3000 });
     }).toPass({ timeout: 30000 });
@@ -83,6 +101,58 @@ export class OrderPage {
     await this.page.reload();
     await this.page.waitForLoadState('networkidle');
     await expect(this.deleteButtonFor(trackingNumber)).toHaveCount(0, { timeout: 10000 });
+  }
+
+  private editButtonFor(trackingNumber: string): Locator {
+    return this.page
+      .locator('.row.order-row')
+      .filter({ hasText: trackingNumber })
+      .locator('a[href*="/sale-order/edit/"]');
+  }
+
+  async openEditParcel(trackingNumber: string) {
+    const editLink = this.editButtonFor(trackingNumber);
+    await expect(editLink).toHaveCount(1, { timeout: 15000 });
+    await editLink.click();
+    await expect(this.page).toHaveURL(/\/sale-order\/edit\/\d+/);
+    await expect(this.editOrderNameInput).toBeVisible();
+  }
+
+  private async replaceValue(input: Locator, from: string, to: string) {
+    await expect(input).toHaveValue(from); // old value is there right now
+    await input.fill(to);
+  }
+
+  async editParcel(changes: {
+    trackingNumber?: { from: string; to: string };
+    orderName?: { from: string; to: string };
+    price?: { from: string; to: string };
+    shopName?: string;
+    insuranceType?: string;
+    filePath?: string;
+  }) {
+    if (changes.trackingNumber)
+      await this.replaceValue(this.editTrackingNumberInput, changes.trackingNumber.from, changes.trackingNumber.to);
+    if (changes.orderName)
+      await this.replaceValue(this.editOrderNameInput, changes.orderName.from, changes.orderName.to);
+    if (changes.price)
+      await this.replaceValue(this.editPriceInput, changes.price.from, changes.price.to);
+    if (changes.shopName !== undefined) await this.selectShopByName(changes.shopName);
+    if (changes.filePath !== undefined) await this.attachFile(changes.filePath);
+    if (changes.insuranceType !== undefined)
+       await this.selectInsuranceByName(changes.insuranceType);
+       await this.agreeToTerms();
+
+    await this.submit();
+  }
+
+  async expectFormValues(expected: { trackingNumber?: string; orderName?: string; price?: string }) {
+    if (expected.trackingNumber !== undefined)
+      await expect(this.editTrackingNumberInput).toHaveValue(expected.trackingNumber);
+    if (expected.orderName !== undefined)
+      await expect(this.editOrderNameInput).toHaveValue(expected.orderName);
+    if (expected.price !== undefined)
+      await expect(this.editPriceInput).toHaveValue(expected.price);
   }
 
   async selectShopByName(shopName: string) {
@@ -182,6 +252,6 @@ export class OrderPage {
 
   async expectErrorVisible() {
     const visibleError = this.errorMessage.locator('visible=true');
-    await expect(visibleError).toContainText('');  
+    await expect(visibleError).toBeVisible();
   }
 }
