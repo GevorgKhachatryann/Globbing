@@ -33,6 +33,8 @@ export default defineConfig({
     baseURL: 'https://am.new.globbing.com/',
     locale: 'en-US',
     storageState: undefined,
+    actionTimeout: 15000,
+    navigationTimeout: 30000,
     // httpCredentials: {
     //   username: process.env.BASIC_AUTH_USER!,
     //   password: process.env.BASIC_AUTH_PASS!,

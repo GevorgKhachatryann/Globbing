@@ -84,6 +84,7 @@ export class RegistrationPage {
     await this.lastNameInput.fill(details.lastName);
     await this.emailInput.fill(details.email);
     await this.passwordInput.fill(details.password);
+    console.log('Filling password with:', details.password);
     await this.repeatPasswordInput.fill(details.password);
     await this.phoneNumberInput.fill(details.phoneNumber);
     await this.agreeTermsCheckbox.check();
