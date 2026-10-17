@@ -17,6 +17,24 @@ export const specialServices = {
 
 export type SpecialServiceKey = keyof typeof specialServices;
 
+// Verified on am.new.globbing.com (2026-10-17): the service card's data-id,
+// language-independent. Use with OrderPage.getSpecialServiceCard().
+// NOTE: several labels in `specialServices` above do not match their ids
+// (e.g. level30 is Consolidate, level54 is Repack) — prefer this map.
+export const specialServiceIds = {
+  hold: 12,
+  doNotRepack: 23,
+  photoInside: 24,
+  safeRepack: 25,
+  photoOutside: 26,
+  return: 27,
+  recipientChange: 28,
+  checkOrder: 29,
+  consolidate: 30,
+  deconsolidate: 31,
+  repack: 54,
+} as const;
+
 // Pairs that the app should NOT allow on the same parcel at once.
 // TODO: confirm which pairs are actually mutually exclusive — you named
 // deconsolidation + "do not repack" as one example; there may be others.
