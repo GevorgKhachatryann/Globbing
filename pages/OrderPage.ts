@@ -138,6 +138,18 @@ export class OrderPage {
       .click();
   }
 
+  /**
+   * Language-independent: selects the country tab by its
+   * data-country-id (e.g. 6 = USA).
+   */
+  async selectCountryById(countryId: number) {
+    await this.page
+      .locator(
+        `.section.country-section [data-country-id="${countryId}"]`
+      )
+      .click();
+  }
+
   // ---------------------------------------------------------------------------
   // Shop
   // ---------------------------------------------------------------------------
@@ -179,6 +191,18 @@ export class OrderPage {
       .click();
   }
 
+  /**
+   * Language-independent: selects the delivery method by its
+   * data-method-id (e.g. 49 = USA express).
+   */
+  async selectDeliveryMethodById(methodId: number) {
+    await this.page
+      .locator(
+        `.section.method-section [data-method-id="${methodId}"]`
+      )
+      .click();
+  }
+
   // ---------------------------------------------------------------------------
   // Insurance
   // ---------------------------------------------------------------------------
@@ -200,6 +224,20 @@ export class OrderPage {
 
     await this.insuranceOptions
       .nth(index)
+      .click();
+  }
+
+  /**
+   * Selects insurance by its data-id. Note: data-id="-1" is the
+   * "Choose" placeholder; the terms checkbox only appears for real options.
+   */
+  async selectInsuranceById(insuranceId: number) {
+    await this.openInsuranceDropdown();
+
+    await this.page
+      .locator(
+        `.section.insurance-section .parcel_insurance-option[data-id="${insuranceId}"] .dropdown-item`
+      )
       .click();
   }
 
@@ -315,6 +353,109 @@ export class OrderPage {
     await this.cancelAddSpecialService();
   }
 
+  /**
+   * Service card in the modal, located by its data-id
+   * (see specialServiceIds in data/specialServiceData.ts).
+   */
+  getSpecialServiceCard(serviceId: number): Locator {
+    return this.page.locator(
+      `#specialServicesModal .service-card[data-id="${serviceId}"]`
+    );
+  }
+
+  /**
+   * Added service row in the "Special services" section.
+   * The remove icon carries the same data-id as the service card.
+   */
+  getSpecialServiceItem(serviceId: number): Locator {
+    return this.page
+      .locator('.special-service-item')
+      .filter({
+        has: this.page.locator(
+          `.remove-special-service[data-id="${serviceId}"]`
+        ),
+      });
+  }
+
+  /**
+   * Adds a service that has no extra fields on its second page
+   * (e.g. Hold) and returns the POST /special-service/save/ response body.
+   *
+   * On the edit page the service is only staged by this call;
+   * it is stored when the parcel is saved (see saveChanges()).
+   */
+  async addSpecialServiceById(serviceId: number) {
+    await this.openSpecialServicesModal();
+
+    const card = this.getSpecialServiceCard(serviceId);
+
+    await expect(card).toBeVisible({
+      timeout: 10000,
+    });
+
+    await card.click();
+
+    await this.clickSpecialServiceNext();
+
+    const [saveResponse] = await Promise.all([
+      this.page.waitForResponse(
+        (response) =>
+          response.url().includes('/special-service/save/') &&
+          response.request().method() === 'POST'
+      ),
+      this.confirmAddSpecialService(),
+    ]);
+
+    await expect(
+      this.getSpecialServiceItem(serviceId)
+    ).toBeVisible({
+      timeout: 10000,
+    });
+
+    return saveResponse.json();
+  }
+
+  /**
+   * Removes an added service and returns the
+   * POST /special-service/cancel response body.
+   * Removal is stored immediately (no Save Changes needed).
+   */
+  async removeSpecialServiceById(serviceId: number) {
+    const [cancelResponse] = await Promise.all([
+      this.page.waitForResponse((response) =>
+        response.url().includes('/special-service/cancel')
+      ),
+      this.getSpecialServiceItem(serviceId)
+        .locator('.remove-special-service')
+        .click(),
+    ]);
+
+    await expect(
+      this.getSpecialServiceItem(serviceId)
+    ).toHaveCount(0);
+
+    return cancelResponse.json();
+  }
+
+  /**
+   * Cleanup helper: removes every service currently listed.
+   */
+  async removeAllSpecialServices() {
+    const removeIcons = this.page.locator(
+      '.remove-special-service'
+    );
+
+    while ((await removeIcons.count()) > 0) {
+      const serviceId = await removeIcons
+        .first()
+        .getAttribute('data-id');
+
+      await this.removeSpecialServiceById(
+        Number(serviceId)
+      );
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Special-service assertions
   // ---------------------------------------------------------------------------
@@ -332,6 +473,18 @@ export class OrderPage {
   async expectNoServiceItemByName(serviceName: string) {
     await expect(
       this.serviceItems.filter({ hasText: serviceName })
+    ).toHaveCount(0);
+  }
+
+  async expectSpecialServiceListed(serviceId: number) {
+    await expect(
+      this.getSpecialServiceItem(serviceId)
+    ).toBeVisible();
+  }
+
+  async expectSpecialServiceNotListed(serviceId: number) {
+    await expect(
+      this.getSpecialServiceItem(serviceId)
     ).toHaveCount(0);
   }
 
@@ -478,6 +631,94 @@ export class OrderPage {
       .locator('.row.order-row')
       .filter({ hasText: trackingNumber })
       .locator('a[href*="/sale-order/edit/"]');
+  }
+
+  /**
+   * Status badge of a parcel row on My Orders. It opens a status modal,
+   * e.g. data-bs-target="#orderWaitingModal" for "Waiting".
+   */
+  getParcelStatusLabel(trackingNumber: string): Locator {
+    return this.page
+      .locator('.row.order-row')
+      .filter({ hasText: trackingNumber })
+      .locator('a.label[data-bs-target]');
+  }
+
+  /**
+   * Must be called on the My Orders page. Language-independent:
+   * checks the badge's modal target, not its text.
+   *
+   * "Waiting" opens #orderWaitingModal, or #orderWaitingModalSS
+   * ("Special service request") when the parcel has a special service.
+   */
+  async expectParcelStatusWaiting(
+    trackingNumber: string,
+    withSpecialService = false
+  ) {
+    await expect(
+      this.getParcelStatusLabel(trackingNumber)
+    ).toHaveAttribute(
+      'data-bs-target',
+      withSpecialService
+        ? '#orderWaitingModalSS'
+        : '#orderWaitingModal'
+    );
+  }
+
+  /**
+   * Must be called on the My Orders page.
+   */
+  async getEditParcelUrl(
+    trackingNumber: string
+  ): Promise<string> {
+    const editLink =
+      this.editButtonFor(trackingNumber);
+
+    await expect(editLink).toHaveCount(1, {
+      timeout: 15000,
+    });
+
+    const href = await editLink.getAttribute('href');
+
+    if (!href) {
+      throw new Error(
+        `Edit link not found for ${trackingNumber}`
+      );
+    }
+
+    return href;
+  }
+
+  /**
+   * HTTP status of the parcel's edit page, without navigating:
+   * 200 = parcel exists, 404 = parcel is gone.
+   */
+  async getParcelEditPageStatus(
+    editUrl: string
+  ): Promise<number> {
+    const response = await this.page.request.get(
+      editUrl,
+      { maxRedirects: 0 }
+    );
+
+    return response.status();
+  }
+
+  /**
+   * Edit page "Save Changes". Services added on the edit page
+   * are stored only after this.
+   */
+  async saveChanges() {
+    await this.agreeToTerms();
+
+    await this.submit();
+
+    await expect(this.page).toHaveURL(
+      /\/my-orders\//,
+      {
+        timeout: 15000,
+      }
+    );
   }
 
   async openEditParcel(
